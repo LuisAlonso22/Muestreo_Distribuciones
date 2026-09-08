@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muestreo y distribuciones muestrales</title>
+<meta name="description" content="Sesión doctoral sobre muestreo y distribuciones muestrales. Capítulo 7 de Anderson, Sweeney y Williams, con simulaciones interactivas y ejercicios en SPSS.">
+<style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f3f0; --surface-1:#fcfcfb; --surface-2:#eceae5;
+  --line:#e0ded7; --line-strong:#c9c6bd;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#7d7b74;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+  --s1-soft:#e4eefb;
+  --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
+  --seq-500:#256abf; --seq-600:#184f95; --seq-700:#0d366b;
+  --accent:#2a78d6; --warn:#b4690e; --ok:#00713a;
+  --brand:#24398A; --gold:#E1B73D; --brand-soft:#e8ebf6; --gold-soft:#fbf3dd;
+  --radius:10px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --serif:"Times New Roman",Times,Georgia,serif;
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#111110; --surface-1:#1a1a19; --surface-2:#232321;
+  --line:#33332f; --line-strong:#4a4a45;
+  --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8f8e85;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --s1-soft:#172b45;
+  --seq-100:#0d366b; --seq-200:#184f95; --seq-300:#256abf; --seq-400:#3987e5;
+  --seq-500:#6da7ec; --seq-600:#9ec5f4; --seq-700:#cde2fb;
+  --accent:#3987e5; --warn:#e0a458; --ok:#4fbf85;
+  --brand:#8fa4ec; --gold:#E1B73D; --brand-soft:#1c2440; --gold-soft:#2e2718;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font); background:var(--surface-0); color:var(--ink);
+  -webkit-font-smoothing:antialiased; line-height:1.55; overflow:hidden;
+}
+
+/* ---------- Deck shell ---------- */
+#deck{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:0}
+.slide{
+  position:absolute; inset:0; display:none; flex-direction:column;
+  padding:clamp(24px,3.2vw,54px) clamp(24px,4.5vw,86px) 72px;
+  overflow-y:auto; overflow-x:hidden; background:var(--surface-0);
+  animation:fade .28s ease;
+}
+.slide.active{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.slide-inner{width:100%; max-width:1180px; margin:0 auto}
+
+/* ---------- Typography ---------- */
+.eyebrow{
+  font-size:clamp(11px,1.05vw,13px); font-weight:650; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--brand); margin:0 0 10px;
+}
+h1{font-size:clamp(30px,4.6vw,60px); line-height:1.08; letter-spacing:-.022em; margin:0 0 18px; font-weight:680}
+h2{font-size:clamp(23px,3.1vw,40px); line-height:1.14; letter-spacing:-.018em; margin:0 0 12px; font-weight:660}
+.slide:not(.cover) h2::after{
+  content:""; display:block; width:56px; height:3px; border-radius:2px; margin-top:9px;
+  background:linear-gradient(90deg,var(--brand) 0%,var(--brand) 45%,var(--gold) 55%,var(--gold) 100%);
+}
+h3{font-size:clamp(16px,1.6vw,21px); line-height:1.3; margin:0 0 10px; font-weight:640; letter-spacing:-.008em}
+p{margin:0 0 14px; font-size:clamp(14px,1.35vw,18px); color:var(--ink-2); max-width:74ch}
+.lead{font-size:clamp(16px,1.75vw,23px); color:var(--ink-2); max-width:60ch; line-height:1.45}
+strong{color:var(--ink); font-weight:640}
+ul,ol{margin:0 0 16px; padding-left:1.15em; font-size:clamp(14px,1.35vw,18px); color:var(--ink-2); max-width:74ch}
+li{margin-bottom:9px}
+li::marker{color:var(--ink-3)}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+a:hover{border-bottom-color:var(--accent)}
+code,.mono{font-family:var(--mono); font-size:.9em}
+
+/* ---------- Layout helpers ---------- */
+.grid{display:grid; gap:clamp(16px,2vw,32px)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-6-4{grid-template-columns:minmax(0,6fr) minmax(0,4fr)}
+.g-4-6{grid-template-columns:minmax(0,4fr) minmax(0,6fr)}
+.g-5-5{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-7-3{grid-template-columns:minmax(0,7fr) minmax(0,3fr)}
+@media(max-width:900px){.g2,.g3,.g-6-4,.g-4-6,.g-5-5,.g-7-3{grid-template-columns:1fr}}
+.center{display:flex; flex-direction:column; justify-content:center; min-height:100%}
+.mt{margin-top:20px} .mt-s{margin-top:12px} .mb0{margin-bottom:0}
+
+/* ---------- Cards ---------- */
+.card{
+  background:var(--surface-1); border:1px solid var(--line); border-radius:var(--radius);
+  padding:clamp(14px,1.5vw,22px);
+}
+.card h3{margin-top:0}
+.card-accent{border-left:3px solid var(--accent)}
+.card-warn{border-left:3px solid var(--warn)}
+.card-ok{border-left:3px solid var(--ok)}
+.callout{
+  background:var(--s1-soft); border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line));
+  border-radius:var(--radius); padding:clamp(14px,1.5vw,20px); margin:16px 0;
+}
+.callout p:last-child{margin-bottom:0}
+.callout .k{font-weight:650; color:var(--ink); display:block; margin-bottom:4px; font-size:clamp(13px,1.2vw,16px)}
+
+/* ---------- Tables ---------- */
+.tbl-wrap{overflow-x:auto; margin:0 0 14px; max-width:100%}
+table{table-layout:auto; max-width:100%}
+table{border-collapse:collapse; width:100%; font-size:clamp(12px,1.15vw,15.5px); font-variant-numeric:tabular-nums}
+th,td{padding:7px 11px; text-align:right; border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th .mx{text-transform:none}
+thead th{
+  font-weight:620; color:var(--ink-2); font-size:.88em; letter-spacing:.02em;
+  text-transform:uppercase; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+}
+tbody tr:hover{background:var(--surface-2)}
+tfoot td{font-weight:650; color:var(--ink); border-top:1px solid var(--line-strong); border-bottom:none}
+caption{caption-side:bottom; text-align:left; padding-top:9px; font-size:.85em; color:var(--ink-3)}
+.t-compact th,.t-compact td{padding:5px 9px}
+.t-left td,.t-left th{text-align:left}
+td.hl,th.hl{background:var(--s1-soft)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Chips / badges ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px}
+.chip{
+  font-size:clamp(11px,1.05vw,13.5px); padding:4px 11px; border-radius:100px;
+  background:var(--surface-2); color:var(--ink-2); border:1px solid var(--line); font-weight:520;
+}
+.chip.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+.badge{
+  display:inline-block; font-size:.78em; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 9px; border-radius:5px; background:var(--surface-2); color:var(--ink-2); border:1px solid var(--line);
+}
+.badge.b1{background:var(--s1-soft); color:var(--accent); border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.badge.bw{background:var(--gold-soft); color:var(--warn); border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+
+/* ---------- Buttons / controls ---------- */
+button, .btn{
+  font-family:inherit; font-size:clamp(12px,1.15vw,14.5px); font-weight:560;
+  padding:7px 15px; border-radius:7px; border:1px solid var(--line-strong);
+  background:var(--surface-1); color:var(--ink); cursor:pointer; transition:.15s;
+}
+button:hover,.btn:hover{background:var(--surface-2); border-color:var(--ink-3)}
+button.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+button.on:hover{filter:brightness(1.08)}
+.ctrl-row{display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin:0 0 14px}
+.ctrl-row label{font-size:clamp(12px,1.15vw,14.5px); color:var(--ink-2); font-weight:520; display:flex; align-items:center; gap:9px}
+input[type=range]{accent-color:var(--accent); width:clamp(120px,16vw,210px)}
+input[type=number],select{
+  font-family:inherit; font-size:clamp(12px,1.15vw,14.5px); padding:6px 9px; border-radius:7px;
+  border:1px solid var(--line-strong); background:var(--surface-1); color:var(--ink); width:7.5em;
+}
+select{width:auto}
+.val{font-family:var(--mono); font-weight:620; color:var(--ink); min-width:2.6em; display:inline-block; text-align:right}
+
+/* ---------- SPSS panel ---------- */
+.spss{
+  background:var(--surface-1); border:1px solid var(--line); border-left:3px solid var(--s3);
+  border-radius:var(--radius); padding:clamp(14px,1.5vw,20px);
+}
+.spss .hd{display:flex; align-items:center; gap:9px; margin-bottom:11px}
+.spss .hd b{font-size:clamp(13px,1.25vw,16px); letter-spacing:-.005em}
+.spss .tag{font-size:.72em; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--s3); border:1px solid color-mix(in srgb,var(--s3) 35%,transparent); padding:2px 7px; border-radius:4px}
+.spss ol{font-size:clamp(12.5px,1.2vw,15.5px); margin-bottom:0; padding-left:1.25em}
+.spss li{margin-bottom:7px}
+.path{
+  font-family:var(--mono); font-size:.9em; background:var(--surface-2); padding:2px 7px;
+  border-radius:5px; border:1px solid var(--line); color:var(--ink);
+  white-space:normal; overflow-wrap:break-word; box-decoration-break:clone;
+  -webkit-box-decoration-break:clone; line-height:1.7;
+}
+kbd{font-family:var(--mono); font-size:.85em; background:var(--surface-2); border:1px solid var(--line-strong); border-bottom-width:2px; border-radius:4px; padding:1px 6px}
+
+/* ---------- Charts ---------- */
+.chart{width:100%}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.axis line,.axis path,line.axis{stroke:var(--line-strong); stroke-width:1; fill:none}
+.grid-l{stroke:var(--line); stroke-width:1}
+.tick{font-size:12px; fill:var(--ink-3); font-family:var(--font)}
+.axlab{font-size:12.5px; fill:var(--ink-2); font-family:var(--font); font-weight:560}
+.dlab{font-size:12px; fill:var(--ink); font-family:var(--font); font-weight:600; font-variant-numeric:tabular-nums}
+.flab{font-size:13px; fill:var(--ink); font-family:var(--serif); font-style:italic}
+.chart{position:relative; padding-top:12px}
+.chart::before{
+  content:""; position:absolute; top:0; left:0; width:52px; height:2.5px; border-radius:2px;
+  background:linear-gradient(90deg,var(--brand) 0%,var(--brand) 45%,var(--gold) 55%,var(--gold) 100%);
+}
+.chart.plain{padding-top:0}
+.chart.plain::before{display:none}
+.ctitle{font-size:clamp(13px,1.2vw,15.5px); font-weight:620; color:var(--ink); margin:0 0 2px}
+.csub{font-size:clamp(11.5px,1.1vw,13.5px); color:var(--ink-3); margin:0 0 10px}
+.legend{display:flex; flex-wrap:wrap; gap:14px; margin:10px 0 0; font-size:clamp(11.5px,1.1vw,13.5px); color:var(--ink-2)}
+.legend span{display:flex; align-items:center; gap:6px}
+.swatch{width:11px; height:11px; border-radius:3px; flex:none}
+.tip{
+  position:fixed; pointer-events:none; z-index:900; background:var(--surface-1);
+  border:1px solid var(--line-strong); border-radius:7px; padding:7px 11px; font-size:13px;
+  box-shadow:0 4px 18px rgba(0,0,0,.14); opacity:0; transition:opacity .12s; color:var(--ink); max-width:250px;
+}
+.tip.on{opacity:1}
+.tip b{display:block; margin-bottom:2px; font-weight:640}
+.tip .v{font-variant-numeric:tabular-nums; color:var(--ink-2)}
+.mark{transition:opacity .12s}
+.mark:hover{opacity:.82; cursor:pointer}
+
+/* ---------- Fórmulas ---------- */
+.formula{
+  font-family:var(--serif); font-size:clamp(20px,2.3vw,30px); color:var(--ink); line-height:1.3;
+  margin:8px 0 12px; white-space:nowrap;
+}
+.formula.sm{font-size:clamp(16px,1.7vw,22px); margin:4px 0 8px}
+.formula i{font-style:italic}
+.formula .frac{display:inline-flex; flex-direction:column; text-align:center; vertical-align:middle; line-height:1.15; margin:0 .18em}
+.formula .frac>span{padding:0 .25em}
+.formula .frac>span:first-child{border-bottom:1.5px solid currentColor}
+.formula .sq{display:inline-flex; align-items:stretch; vertical-align:middle}
+.formula .sq::before{content:"√"; font-style:normal; margin-right:.05em; align-self:flex-start; line-height:1}
+.formula .sq>span{border-top:1.5px solid currentColor; padding:0 .15em}
+.formula sub{font-size:.62em; font-style:italic}
+.formula sup{font-size:.62em}
+.formula .op{font-style:normal; color:var(--ink-2); margin:0 .15em}
+.formula .lbl{font-family:var(--font); font-style:normal; font-size:.5em; color:var(--ink-3); margin-left:.8em; display:inline-block; white-space:normal; vertical-align:middle; max-width:26em; line-height:1.35}
+.mx{font-family:var(--serif); font-style:italic; font-size:1.08em}
+.hat{position:relative; display:inline-block}
+.hat::after{content:"ˆ"; position:absolute; left:52%; top:-.62em; transform:translateX(-50%); font-size:.85em; font-style:normal; line-height:1}
+.ovl{text-decoration:overline}
+
+/* ---------- Widgets propios del tema ---------- */
+.samples{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:8px 0 12px}
+.samples .sm{
+  border:1px solid var(--line); border-radius:8px; background:var(--surface-1); padding:8px 6px;
+  text-align:center; font-family:var(--serif); font-style:italic; font-size:clamp(15px,1.5vw,20px); color:var(--ink);
+  transition:.15s;
+}
+.samples .sm.hit{background:var(--brand); color:#fff; border-color:var(--brand)}
+.samples .sm small{display:block; font-family:var(--font); font-style:normal; font-size:11px; color:var(--ink-3); margin-top:2px}
+.samples .sm.hit small{color:#fff; opacity:.85}
+.digits{display:flex; gap:7px; flex-wrap:wrap; margin:6px 0 10px}
+.digits .dg{
+  width:38px; height:44px; border-radius:7px; border:1px solid var(--line-strong); background:var(--surface-1);
+  display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:19px; font-weight:640; color:var(--ink-3);
+  transition:.15s;
+}
+.digits .dg.cur{border-color:var(--brand); color:var(--brand); box-shadow:0 0 0 2px var(--brand-soft)}
+.digits .dg.ok{background:var(--ok); color:#fff; border-color:var(--ok)}
+.digits .dg.no{background:var(--surface-2); color:var(--ink-3); text-decoration:line-through}
+.digits .dg.done{opacity:.55}
+.step-log{font-size:clamp(12.5px,1.2vw,15px); color:var(--ink-2); min-height:3.2em; margin:0 0 8px}
+.step-log b{color:var(--ink)}
+.pick{display:flex; gap:8px; align-items:center; margin:0 0 10px; font-size:clamp(13px,1.25vw,16px); color:var(--ink-2)}
+.pick .slot{
+  width:44px; height:44px; border-radius:9px; border:2px dashed var(--line-strong); display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif); font-style:italic; font-size:22px; color:var(--ink);
+}
+.pick .slot.full{border-style:solid; border-color:var(--brand); background:var(--brand-soft)}
+
+.readouts{display:flex; gap:clamp(14px,2.2vw,34px); flex-wrap:wrap; margin:10px 0 4px}
+.readouts .r{display:flex; flex-direction:column}
+.readouts .n{font-size:clamp(18px,2.2vw,28px); font-weight:660; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.1}
+.readouts .l{font-size:clamp(11px,1.05vw,12.8px); color:var(--ink-3); margin-top:4px; max-width:16ch}
+.readouts .n.b{color:var(--brand)}
+
+.calc{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:8px 0 10px}
+.calc label{display:flex; flex-direction:column; gap:5px; font-size:clamp(12px,1.15vw,14px); color:var(--ink-2); font-weight:540}
+.calc label>span{display:block}
+.calc input,.calc select{width:100%}
+.result{
+  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:6px 0 10px; padding:12px 16px;
+  border-radius:var(--radius); background:var(--brand-soft); border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);
+}
+.result .big{font-size:clamp(26px,3.4vw,44px); font-weight:680; letter-spacing:-.03em; color:var(--brand); font-variant-numeric:tabular-nums; line-height:1}
+.result .big sup{font-size:.5em; letter-spacing:0}
+.result .lbl{font-size:clamp(12px,1.15vw,14px); color:var(--ink-2)}
+
+.two-vs{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:760px){.two-vs{grid-template-columns:1fr}}
+.pend{opacity:.72}
+.dot-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:clamp(11.5px,1.1vw,13.5px); color:var(--ink-2); margin-top:6px}
+.dot-legend span{display:flex; align-items:center; gap:6px}
+.dot-legend i{width:11px; height:11px; border-radius:50%; display:inline-block; flex:none}
+
+/* ---------- Nav / chrome ---------- */
+#bar{
+  position:fixed; left:0; right:0; bottom:0; height:52px; display:flex; align-items:center;
+  gap:12px; padding:0 clamp(14px,2.4vw,30px); background:color-mix(in srgb,var(--surface-1) 92%,transparent);
+  backdrop-filter:blur(10px); border-top:1px solid var(--line); z-index:500;
+}
+#bar .sec{font-size:12.5px; color:var(--ink-3); font-weight:540; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:8px}
+#bar .bchip{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#fff;
+  background:var(--brand); padding:2.5px 8px; border-radius:4px; flex:none}
+#bar .bchip.g{background:var(--gold); color:#3a2f0c}
+#bar #btn-menu{border-color:var(--brand); color:var(--brand); font-weight:620}
+#bar #btn-menu:hover{background:var(--brand-soft)}
+#prog{background:linear-gradient(90deg,var(--brand),var(--gold))}
+#bar .cnt{font-size:12.5px; color:var(--ink-3); font-variant-numeric:tabular-nums; font-weight:560}
+#bar button{padding:5px 11px; font-size:13px}
+#prog{position:fixed; top:0; left:0; height:2.5px; background:var(--accent); z-index:600; transition:width .25s}
+#menu{
+  position:fixed; inset:0; background:var(--surface-0); z-index:800; overflow-y:auto;
+  padding:clamp(22px,3.4vw,46px) clamp(22px,4vw,52px) 70px; display:none;
+}
+#menu.on{display:block}
+#menu .mh{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px}
+#menu h2{margin-bottom:0}
+#menu h2::after{content:""; display:block; width:56px; height:3px; border-radius:2px; margin-top:10px;
+  background:linear-gradient(90deg,var(--brand) 0%,var(--brand) 45%,var(--gold) 55%,var(--gold) 100%)}
+.mwrap{max-width:1220px}
+
+/* tarjetas de bloque */
+.blocks{display:grid; grid-template-columns:repeat(auto-fill,minmax(228px,1fr)); gap:11px; margin:24px 0 30px}
+.blk{
+  text-align:left; padding:13px 15px 14px; border-radius:9px; cursor:pointer;
+  border:1px solid var(--line); background:var(--surface-1); position:relative;
+  overflow:hidden; transition:.15s; display:block; width:100%; font-family:inherit;
+}
+.blk::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+  background:linear-gradient(180deg,var(--brand) 0%,var(--brand) 55%,var(--gold) 55%,var(--gold) 100%); opacity:.85}
+.blk:hover{border-color:var(--brand); background:var(--surface-2); transform:translateY(-1px)}
+.blk.now{border-color:var(--brand); background:var(--brand-soft); box-shadow:0 0 0 1px var(--brand) inset}
+.blk .bn{font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--brand); display:block; margin-bottom:5px}
+.blk .bt{font-size:15px; font-weight:640; color:var(--ink); line-height:1.25; display:block; margin-bottom:8px; letter-spacing:-.008em}
+.blk .bm{font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums; display:flex; gap:9px; flex-wrap:wrap}
+.blk .bm .kbd{font-family:var(--mono); border:1px solid var(--line-strong); border-radius:3px; padding:0 4px; color:var(--ink-2)}
+
+/* lista completa */
+.toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:7px}
+.toc button{
+  text-align:left; padding:9px 13px; font-size:13.2px; display:flex; gap:11px; align-items:baseline;
+  border-color:var(--line); background:var(--surface-1); line-height:1.35;
+}
+.toc button.now{border-color:var(--brand); background:var(--brand-soft)}
+.toc button .n{font-family:var(--mono); color:var(--ink-3); font-size:.85em; min-width:2em; flex:none}
+.toc .h{grid-column:1/-1; font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--brand); margin:20px 0 4px; padding-bottom:6px; border-bottom:2px solid transparent;
+  border-image:linear-gradient(90deg,var(--brand) 0%,var(--gold) 26%,var(--line) 26%) 1}
+.toc .h:first-child{margin-top:0}
+.msub{font-size:12.5px; color:var(--ink-3); margin:0}
+
+/* ---------- Portada ---------- */
+.cover{
+  background:
+    radial-gradient(1100px 620px at 88% -12%, var(--brand-soft) 0%, transparent 62%),
+    var(--surface-0);
+  padding-left:clamp(34px,5.4vw,104px); padding-right:clamp(24px,4vw,72px);
+}
+.cover::before{
+  content:""; position:absolute; left:0; top:0; bottom:52px; width:9px;
+  background:linear-gradient(180deg,var(--brand) 0%,var(--brand) 58%,var(--gold) 58%,var(--gold) 100%);
+}
+.cover .inst{
+  font-size:clamp(12.5px,1.35vw,17px); line-height:1.62; color:var(--brand);
+  font-weight:640; letter-spacing:.005em; margin:0 0 6px;
+}
+.cover .inst .u{font-size:clamp(14px,1.55vw,20px); font-weight:700; letter-spacing:-.01em; display:block}
+.cover .inst .c{color:var(--ink-2); font-weight:520}
+.cover .rule{
+  height:4px; width:118px; border-radius:2px; margin:0 0 24px;
+  background:linear-gradient(90deg,var(--brand) 0%,var(--brand) 46%,var(--gold) 54%,var(--gold) 100%);
+}
+.cover h1{max-width:none; font-size:clamp(30px,4.9vw,62px)}
+.cover .lead{max-width:52ch}
+.cover .meta{
+  font-size:clamp(12.5px,1.3vw,16.5px); color:var(--ink-2); margin-top:30px; line-height:1.72;
+  padding-left:17px; border-left:3px solid var(--gold);
+}
+.cover .meta b{color:var(--ink); font-weight:660}
+.cover .meta .rol{color:var(--brand); font-weight:640}
+.cover .keys{margin-top:26px}
+@media(max-width:760px){ .cover::before{width:6px} }
+
+/* ---------- Misc ---------- */
+.kpi{display:flex; gap:clamp(18px,3vw,48px); flex-wrap:wrap; margin:18px 0}
+.kpi .k{display:flex; flex-direction:column}
+.kpi .n{font-size:clamp(28px,4vw,48px); font-weight:680; line-height:1; letter-spacing:-.03em; color:var(--ink); font-variant-numeric:tabular-nums}
+.kpi .l{font-size:clamp(11.5px,1.1vw,13.5px); color:var(--ink-3); margin-top:7px; max-width:20ch}
+.raw{font-family:var(--mono); font-size:clamp(11px,1.1vw,14px); color:var(--ink-2); line-height:1.85;
+  background:var(--surface-1); border:1px solid var(--line); border-radius:var(--radius); padding:14px; overflow-x:auto}
+.hint{font-size:clamp(11.5px,1.1vw,13.5px); color:var(--ink-3); font-style:italic}
+.q{border-left:3px solid var(--line-strong); padding-left:16px; margin:16px 0; font-size:clamp(14px,1.4vw,18px); color:var(--ink-2)}
+.q cite{display:block; margin-top:8px; font-size:.85em; color:var(--ink-3); font-style:normal}
+.no{color:var(--warn); font-weight:640}
+.yes{color:var(--ok); font-weight:640}
+.dl{display:flex; flex-wrap:wrap; gap:9px; margin:14px 0}
+.dl a,.dl span.f{
+  display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:7px;
+  border:1px solid var(--line-strong); background:var(--surface-1); color:var(--ink);
+  font-size:clamp(12px,1.15vw,14.5px); font-weight:540; text-decoration:none;
+}
+.dl a:hover{background:var(--surface-2); border-color:var(--accent)}
+.dl a .mono,.dl span.f .mono{color:var(--ink-3); font-size:.85em}
+.dl span.f{opacity:.7; border-style:dashed}
+
+@media(max-width:760px){
+  .slide{padding:20px 18px 66px}
+  #bar .sec{display:none}
+  .kpi{gap:20px}
+  .samples{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+
+/* ---------- Densidad reducida para láminas cargadas ---------- */
+.slide.dense{padding-top:clamp(18px,2.4vw,38px)}
+.slide.dense h2{font-size:clamp(21px,2.7vw,35px); margin-bottom:8px}
+.slide.dense h2::after{margin-top:7px; width:46px; height:2.5px}
+.slide.dense .chart{padding-top:10px}
+.slide.dense .spss{padding:11px 14px}
+.slide.dense .spss .hd{margin-bottom:8px}
+.slide.dense .spss li{margin-bottom:5px}
+.slide.dense .card,.slide.dense .callout{padding:12px 15px}
+.slide.dense .card h3{font-size:clamp(14px,1.4vw,17px); margin-bottom:7px}
+.slide.dense p,.slide.dense ul,.slide.dense ol{font-size:clamp(12.5px,1.2vw,15.8px); margin-bottom:10px}
+.slide.dense li{margin-bottom:6px}
+.slide.dense .lead{font-size:clamp(14px,1.5vw,19px); margin-bottom:10px}
+.slide.dense .card,.slide.dense .callout,.slide.dense .spss{padding:12px 15px}
+.slide.dense .card h3,.slide.dense .spss b{font-size:clamp(14px,1.35vw,17px)}
+.slide.dense h3{margin-bottom:7px}
+.slide.dense .grid{gap:clamp(12px,1.5vw,22px)}
+.slide.dense .mt{margin-top:13px}
+.slide.dense .mt-s{margin-top:9px}
+.slide.dense .spss ol{font-size:clamp(12px,1.15vw,14.5px)}
+.slide.dense .raw{font-size:clamp(10.5px,1vw,12.8px); padding:11px; line-height:1.6}
+.slide.dense table{font-size:clamp(11.5px,1.05vw,14px)}
+.slide.dense th,.slide.dense td{padding:5px 9px}
+.slide.dense .formula{font-size:clamp(18px,2vw,26px); margin:6px 0 10px}
+.slide.dense .formula.sm{font-size:clamp(15px,1.55vw,20px)}
+.slide.dense .kpi{margin:12px 0}
+.slide.dense .kpi .n{font-size:clamp(24px,3.2vw,40px)}
+
+/* ---------- Print ---------- */
+@media print{
+  @page{size:1280px 800px; margin:0}
+  body{overflow:visible; background:#fff}
+  #bar,#prog,#menu,.tip{display:none !important}
+  #deck{position:static; display:block}
+  .slide{
+    display:flex !important; position:relative; inset:auto; page-break-after:always; break-after:page;
+    min-height:800px; height:800px; width:1280px; animation:none; overflow:hidden; padding:36px 54px;
+  }
+  .slide .card,.slide .callout,.slide .spss{padding:12px 15px}
+  .slide h2{margin-bottom:10px}
+  .slide h2::after{margin-top:8px}
+  .slide .mt{margin-top:15px} .slide .mt-s{margin-top:10px}
+  .slide li{margin-bottom:5px}
+  .slide p{margin-bottom:10px}
+  .slide .grid{gap:16px}
+  .slide table{font-size:13px}
+  .slide th,.slide td{padding:5px 9px}
+  .slide .lead{font-size:17px}
+  .slide-inner > *:last-child{margin-bottom:0 !important}
+  .slide .callout{margin-top:10px; margin-bottom:0}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="tip" id="tip"></div>
+<div id="deck">
+
+<!-- ============ 1. PORTADA ============ -->
+<section class="slide cover" data-sec="Portada">
+  <div class="slide-inner center">
+    <p class="inst">
+      <span class="u">Universidad de Sonora</span>
+      Doctorado en Ciencias Económicas y Administrativas<br>
+      <span class="c">Procesamiento y análisis de datos</span>
+    </p>
+    <div class="rule"></div>
+    <h1>Muestreo y<br>distribuciones muestrales</h1>
+    <p class="lead">Cómo treinta personas pueden hablar por dos mil quinientas, y cómo saber con cuánto error lo hacen.</p>
+    <div class="meta">
+      <span class="rol">Dr. Sergio Ramón Rossetti López</span><br>
+      Presenta: <b>Luis Antonio Alonso Reyna</b><br>
+      Septiembre 2026
+    </div>
+    <p class="hint keys">Navega con <kbd>→</kbd> <kbd>←</kbd> · Bloques con <kbd>M</kbd> · Tema con <kbd>T</kbd> · Pantalla completa con <kbd>F</kbd></p>
+  </div>
+</section>
+
+<!-- ============ 2. AGENDA ============ -->
+<section class="slide" data-sec="Agenda">
+  <div class="slide-inner">
+    <p class="eyebrow">Ruta de la sesión</p>
+    <h2>Qué vamos a hacer hoy</h2>
+    <div class="grid g2 mt">
+      <div>
+        <table class="t-compact">
+          <thead><tr><th>Bloque</th><th>Contenido</th><th>min</th></tr></thead>
+          <tbody>
+            <tr><td><b>1</b></td><td>Muestreo aleatorio simple</td><td>15</td></tr>
+            <tr><td><b>2</b></td><td>Introducción a las distribuciones muestrales</td><td>15</td></tr>
+            <tr><td><b>3</b></td><td>Distribución muestral de <span class="mx">x̄</span> y de <span class="mx">p̄</span></td><td>25</td></tr>
+            <tr><td><b>4</b></td><td>Propiedades de los estimadores puntuales</td><td>10</td></tr>
+            <tr><td><b>5</b></td><td>Otros métodos de muestreo</td><td>15</td></tr>
+            <tr><td><b>6</b></td><td>Ejercicios en SPSS <span class="badge b1">Escuelas</span> <span class="badge b1">Hogares</span></td><td>30</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="callout">
+          <span class="k">El problema que ordena la sesión</span>
+          <p>Casi nunca podemos medir a toda la población. Medimos una muestra y con ella <strong>estimamos</strong>. La pregunta de fondo es una sola: <strong>¿qué tan lejos puede quedar mi estimación del valor verdadero, y con qué probabilidad?</strong></p>
+        </div>
+        <div class="card card-accent">
+          <h3>Lo que hace falta para responderla</h3>
+          <p class="mb0">Saber cómo se seleccionó la muestra, y conocer cómo se comporta el estadístico cuando el muestreo se repite: su <strong>distribución muestral</strong>. Sin eso no hay margen de error, ni nivel de confianza, ni prueba de hipótesis. Todo lo que viene en el curso descansa sobre este capítulo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. EL PROBLEMA EAI ============ -->
+<section class="slide" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Muestreo aleatorio simple</p>
+    <h2>El problema de Electronics Associates</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <p>El director de personal de Electronics Associates, Inc. (EAI) tiene que responder dos preguntas sobre los <strong>2 500 gerentes</strong> de la empresa: cuál es su <strong>salario anual promedio</strong> y qué <strong>proporción</strong> completó el programa de capacitación gerencial.</p>
+        <p>Con el archivo de personal completo, las respuestas son exactas. Son los <strong>parámetros</strong> de la población:</p>
+        <div class="kpi">
+          <div class="k"><span class="n">2 500</span><span class="l">gerentes · tamaño de la población <span class="mx">N</span></span></div>
+          <div class="k"><span class="n">$51 800</span><span class="l">salario medio anual · <span class="mx">μ</span></span></div>
+          <div class="k"><span class="n">$4 000</span><span class="l">desviación estándar · <span class="mx">σ</span></span></div>
+          <div class="k"><span class="n">0.60</span><span class="l">proporción capacitada · <span class="mx">p</span> (1 500 de 2 500)</span></div>
+        </div>
+        <p class="mb0">Pero ¿y si los expedientes tardaran semanas en revisarse, o si la población fueran 250 000 personas? El capítulo trabaja con EAI porque <strong>conocemos los parámetros</strong>: así podemos ver qué tan bien los adivina una muestra de 30.</p>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Vocabulario que va a aparecer todo el día</h3>
+          <ul class="mb0">
+            <li><strong>Población</strong>: el conjunto completo de elementos que interesa. Los 2 500 gerentes.</li>
+            <li><strong>Muestra</strong>: un subconjunto de la población. Los 30 que vamos a seleccionar.</li>
+            <li><strong>Parámetro</strong>: característica numérica de la población: <span class="mx">μ</span>, <span class="mx">σ</span>, <span class="mx">p</span>. Fijo, normalmente desconocido.</li>
+            <li><strong>Estadístico</strong>: característica numérica de la muestra: <span class="mx">x̄</span>, <span class="mx">s</span>, <span class="mx">p̄</span>. Cambia de muestra a muestra.</li>
+          </ul>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Por qué muestrear</span>
+          <p class="mb0">Tiempo y costo, sobre todo. Pero también porque a veces medir <strong>destruye</strong> el elemento (probar la vida útil de un foco) o porque la población no tiene fin (los clientes que seguirán llegando mañana).</p>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Anderson, Sweeney y Williams · capítulo 7, sección 7.1</p>
+  </div>
+</section>
+
+<!-- ============ 4. FINITA / INFINITA ============ -->
+<section class="slide dense" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Muestreo aleatorio simple</p>
+    <h2>Primero hay que saber qué población tenemos</h2>
+    <p class="lead">El procedimiento de selección cambia según si la población se puede <strong>enumerar</strong> o no. Es la primera decisión, antes de abrir cualquier software.</p>
+    <div class="grid g2 mt">
+      <div class="card card-accent">
+        <h3>Población finita</h3>
+        <p>Tiene un número definido de elementos y, en la práctica, existe una <strong>lista</strong> con todos ellos: el <em>marco muestral</em>.</p>
+        <ul class="mb0">
+          <li>Los 2 500 gerentes de EAI, en el archivo de personal.</li>
+          <li>Los alumnos inscritos este semestre. Las empresas de un padrón. Los hogares de una colonia censada.</li>
+          <li>Se selecciona con <strong>muestreo aleatorio simple</strong>, usando números aleatorios sobre la lista.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Población infinita</h3>
+        <p>Los elementos se generan por un <strong>proceso en curso</strong> y no es posible listarlos todos.</p>
+        <ul class="mb0">
+          <li>Los clientes que llegan a un restaurante McDonald's. Las piezas que salen de una línea de producción. Las transacciones de una tienda en línea.</li>
+          <li>No se pueden enumerar todas las muestras posibles, así que se define una <strong>muestra aleatoria</strong> con dos condiciones que veremos en unas láminas.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="k">Con reemplazo y sin reemplazo</span>
+      <p class="mb0">Al seleccionar de una población finita se puede devolver cada elemento a la lista (con reemplazo, un elemento puede salir dos veces) o no devolverlo (sin reemplazo). Ambas formas son válidas, pero el muestreo aleatorio simple <strong>se hace sin reemplazo</strong>, y ese es el que usan las fórmulas del capítulo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. DEFINICIÓN MAS + CUÁNTAS MUESTRAS ============ -->
+<section class="slide dense" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Muestreo aleatorio simple</p>
+    <h2>Muestra aleatoria simple: la definición y cuántas hay</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="q" style="margin-top:0">
+          Una muestra aleatoria simple de tamaño <span class="mx">n</span> de una población finita de tamaño <span class="mx">N</span> es una muestra seleccionada de manera que <strong>cada muestra posible de tamaño <span class="mx">n</span> tenga la misma probabilidad</strong> de ser seleccionada.
+          <cite>Anderson, Sweeney y Williams · sección 7.2</cite>
+        </div>
+        <p>La definición no habla de elementos, habla de <strong>muestras</strong>. Y como cada elemento se selecciona sin reemplazo, el número de muestras distintas es el número de combinaciones:</p>
+        <div class="formula">
+          <span class="frac"><span><i>N</i>!</span><span><i>n</i>! (<i>N</i> − <i>n</i>)!</span></span>
+          <span class="lbl">muestras posibles, cada una con probabilidad 1 entre ese número</span>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Cómo se selecciona en la práctica</span>
+          <p class="mb0">Se numera la lista, se generan números aleatorios y se toman los elementos cuyos números aparecen, descartando los que caen fuera del rango y los repetidos. Es exactamente lo que hace <span class="path">Datos &gt; Seleccionar casos &gt; Muestra aleatoria de casos</span> en SPSS.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Calcula cuántas muestras existen</h3>
+          <div class="calc">
+            <label><span>Población <span class="mx">N</span></span><input type="number" id="cN" value="2500" min="2" max="100000"></label>
+            <label><span>Muestra <span class="mx">n</span></span><input type="number" id="cn" value="30" min="1" max="100000"></label>
+          </div>
+          <div class="ctrl-row">
+            <button data-comb="2500,30" class="on">EAI: 2 500 y 30</button>
+            <button data-comb="5,2">5 elementos y 2</button>
+            <button data-comb="100,10">100 y 10</button>
+          </div>
+          <div class="result"><span class="big" id="cRes">—</span><span class="lbl" id="cLbl"></span></div>
+          <p class="hint mb0" id="cProb"></p>
+        </div>
+        <div class="card card-accent mt-s">
+          <h3>Lo que significa ese número</h3>
+          <p class="mb0">Para EAI hay del orden de <strong>10<sup>69</sup></strong> muestras posibles de 30 gerentes. La muestra que tomamos es <em>una</em> de ellas, elegida con la misma probabilidad que cualquier otra. Esa es la garantía que después permite calcular probabilidades sobre <span class="mx">x̄</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. EJERCICIO A–E ============ -->
+<section class="slide dense" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Ejercicio resuelto</p>
+    <h2>Cinco elementos, muestras de dos</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Una población finita tiene cinco elementos: <span class="mx">A, B, C, D, E</span>. Queremos muestras aleatorias simples de tamaño 2.</p>
+        <p><strong>1. Enumera las muestras posibles.</strong> 5! / (2! · 3!) = <strong>10</strong>:</p>
+        <div class="samples" id="samples-ab"></div>
+        <p><strong>2. ¿Cuál es la probabilidad de cada una?</strong> Por definición, todas la misma: <strong>1/10</strong>. Observa que cada elemento aparece en 4 de las 10 muestras, así que cada elemento tiene probabilidad 4/10 = <strong>2/5</strong> de ser incluido: igual a <span class="mx">n</span>/<span class="mx">N</span>.</p>
+      </div>
+      <div>
+        <div class="card card-accent">
+          <h3>3. Selecciona una muestra con números aleatorios</h3>
+          <p>El número 1 corresponde a <span class="mx">A</span>, el 2 a <span class="mx">B</span>, y así hasta el 5 para <span class="mx">E</span>. Lee estos dígitos de izquierda a derecha:</p>
+          <div class="digits" id="digits-ab"></div>
+          <div class="pick">Muestra: <span class="slot" id="slot1"></span><span class="slot" id="slot2"></span></div>
+          <p class="step-log" id="step-log">Pulsa <strong>Siguiente dígito</strong> para ir leyendo.</p>
+          <div class="ctrl-row" style="margin-bottom:0">
+            <button id="btn-step" class="on">Siguiente dígito</button>
+            <button id="btn-reset">Reiniciar</button>
+          </div>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Las dos reglas del procedimiento</span>
+          <p class="mb0">Un dígito fuera del rango (aquí 0, 6, 7, 8 y 9) <strong>se descarta</strong>. Un dígito que repite un elemento ya seleccionado <strong>también</strong>, porque el muestreo es sin reemplazo. Se detiene cuando la muestra tiene <span class="mx">n</span> elementos.</p>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Anderson, capítulo 7, ejercicio 3 · Resultado: la muestra queda formada por <strong>E</strong> y <strong>C</strong></p>
+  </div>
+</section>
+
+<!-- ============ 7. POBLACIÓN INFINITA ============ -->
+<section class="slide" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Muestreo aleatorio simple</p>
+    <h2>Cuando no hay lista: la población infinita</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <p>McDonald's quiere estimar el perfil de sus clientes. La población son <strong>todos los clientes que llegan</strong>: los de hoy, los de mañana, los que seguirán llegando. No hay lista, no hay <span class="mx">N</span> y no se pueden enumerar todas las muestras posibles.</p>
+        <p>Para ese caso el capítulo define la <strong>muestra aleatoria</strong> (ya no «simple») con dos condiciones:</p>
+        <div class="grid g2">
+          <div class="card card-accent">
+            <h3>1. Misma población</h3>
+            <p class="mb0">Cada elemento seleccionado proviene de <strong>la misma población</strong>. Los clientes del sábado por la noche y los del martes a mediodía son clientes de McDonald's, pero muestrear sólo a la hora de la comida deja fuera una parte del proceso.</p>
+          </div>
+          <div class="card card-accent">
+            <h3>2. Independencia</h3>
+            <p class="mb0">Cada elemento se selecciona <strong>de forma independiente</strong>. Entrevistar a un cliente y luego a sus tres acompañantes viola la condición: sus respuestas se parecen entre sí más que las de la población.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Dónde aparece en investigación</h3>
+          <ul class="mb0">
+            <li>Piezas que salen de una <strong>línea de producción</strong>: se muestrea el proceso, no un lote cerrado.</li>
+            <li>Llamadas a un centro de atención, visitas a un sitio web, transacciones con tarjeta.</li>
+            <li>Encuestas a <strong>transeúntes</strong> o usuarios de un servicio, cuando no hay padrón.</li>
+          </ul>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">La trampa habitual</span>
+          <p class="mb0">Como no hay lista, es fácil «muestrear» lo que está a la mano y llamarlo aleatorio. Las dos condiciones son el criterio para saber si una muestra de un proceso puede tratarse como aleatoria; si no se cumplen, las fórmulas de las siguientes láminas <strong>no aplican</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. ESTIMACIÓN PUNTUAL ============ -->
+<section class="slide" data-sec="Muestreo aleatorio simple">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 1 · Estimación puntual</p>
+    <h2>Lo que la muestra dice de la población</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <p>Seleccionamos una muestra aleatoria simple de <strong>30 gerentes</strong> de EAI y calculamos sus estadísticos. Cada uno es el <strong>estimador puntual</strong> del parámetro correspondiente:</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Parámetro poblacional</th><th>Valor</th><th>Estimador puntual</th><th>Estimación</th></tr></thead>
+            <tbody>
+              <tr><td>Media <span class="mx">μ</span> del salario anual</td><td>$51 800</td><td><span class="mx">x̄</span> media muestral</td><td class="hl">$51 814</td></tr>
+              <tr><td>Desviación estándar <span class="mx">σ</span></td><td>$4 000</td><td><span class="mx">s</span> desviación estándar muestral</td><td class="hl">$3 348</td></tr>
+              <tr><td>Proporción <span class="mx">p</span> capacitada</td><td>0.60</td><td><span class="mx">p̄</span> proporción muestral</td><td class="hl">0.63</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mb0">Las estimaciones no coinciden con los parámetros, pero se acercan. La diferencia, por ejemplo $51 814 − $51 800 = <strong>$14</strong>, no es un error de cálculo: es la consecuencia inevitable de haber medido 30 personas y no 2 500. Se llama <strong>error muestral</strong> y es el protagonista del resto de la sesión.</p>
+      </div>
+      <div>
+        <div class="card card-warn">
+          <h3>Población muestreada y población objetivo</h3>
+          <p class="mb0">La <strong>población muestreada</strong> es aquella de la que realmente se extrajo la muestra (los gerentes en el archivo de EAI). La <strong>población objetivo</strong> es sobre la que se quiere concluir. Deben ser la misma. Si el marco tiene huecos, la inferencia se aplica al marco, no a la población que interesa.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">La idea que se lleva del bloque</span>
+          <p class="mb0">Una muestra sirve para estimar sólo si <strong>sabemos cómo se seleccionó</strong>. La aleatoriedad no es un adorno metodológico: es lo que permite, en el bloque 3, calcular la probabilidad de que <span class="mx">x̄</span> quede cerca de <span class="mx">μ</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. REPETIR LA MUESTRA ============ -->
+<section class="slide" data-sec="Distribuciones muestrales">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 2 · Introducción a las distribuciones muestrales</p>
+    <h2>¿Qué pasa si repetimos la muestra?</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="chart plain" id="ch-repeat"></div>
+        <p class="hint">Valores ilustrativos. La empacadora envasa miles de cajas; el gerente pesa 50 por día.</p>
+      </div>
+      <div>
+        <p>El gerente de calidad de una empacadora de uva toma una muestra de <strong>50 cajas</strong> cada día durante tres días y calcula el peso medio: obtiene <span class="mx">x̄</span><sub>1</sub>, <span class="mx">x̄</span><sub>2</sub> y <span class="mx">x̄</span><sub>3</sub>. Como cada muestra contiene cajas distintas, <strong>los tres promedios son distintos</strong>, aunque el proceso no cambió.</p>
+        <div class="card card-accent">
+          <h3>La consecuencia</h3>
+          <p class="mb0"><span class="mx">x̄</span> no es un número fijo: es una <strong>variable aleatoria</strong>. Su valor depende de qué muestra salió. Y toda variable aleatoria tiene una distribución de probabilidad.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Definición</span>
+          <p class="mb0">La <strong>distribución muestral</strong> de un estadístico es la distribución de probabilidad de <strong>todos los valores posibles</strong> que ese estadístico puede tomar al repetir el muestreo. Hay una para <span class="mx">x̄</span>, otra para <span class="mx">p̄</span>, otra para <span class="mx">s</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. 500 MUESTRAS ============ -->
+<section class="slide dense" data-sec="Distribuciones muestrales">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 2 · Introducción a las distribuciones muestrales</p>
+    <h2>Quinientas muestras de treinta gerentes</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Anderson repite el experimento de EAI: selecciona <strong>500 muestras aleatorias simples</strong> de 30 gerentes cada una y anota las 500 medias muestrales. Agrupadas en clases de $500:</p>
+        <div class="tbl-wrap"><table class="t-compact" id="tbl-500"></table></div>
+      </div>
+      <div>
+        <div class="chart" id="ch-500"></div>
+        <div class="card card-accent mt-s">
+          <h3>Cómo se lee</h3>
+          <p class="mb0">La mayoría de las medias muestrales (<strong>344 de 500, el 69 %</strong>) cayó entre $51 000 y $52 499, alrededor de <span class="mx">μ</span> = $51 800. Ninguna quedó por debajo de $49 500 ni por encima de $54 000. La forma es aproximadamente de campana. Esa figura <em>es</em> la distribución muestral de <span class="mx">x̄</span>, estimada con 500 repeticiones.</p>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Anderson, sección 7.4 · Distribución de frecuencia de <span class="mx">x̄</span> en 500 muestras aleatorias simples de 30 gerentes de EAI</p>
+  </div>
+</section>
+
+<!-- ============ 11. SIMULACIÓN EN VIVO ============ -->
+<section class="slide dense" data-sec="Distribuciones muestrales">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 2 · Simulación en vivo</p>
+    <h2>Hagámoslo nosotros: 500 muestras, el tamaño que quieras</h2>
+    <div class="grid g-7-3 mt">
+      <div>
+        <div class="ctrl-row">
+          <label>Tamaño de muestra <span class="mx">n</span> <input type="range" id="simN" min="5" max="200" value="30" step="1"> <span class="val" id="simNv">30</span></label>
+          <button id="simGo" class="on">Volver a muestrear</button>
+          <label><input type="checkbox" id="simCurve" checked> Curva normal teórica</label>
+        </div>
+        <div class="chart" id="ch-sim"></div>
+        <div class="readouts">
+          <div class="r"><span class="n" id="rdMean">—</span><span class="l">media de las 500 <span class="mx">x̄</span></span></div>
+          <div class="r"><span class="n" id="rdSd">—</span><span class="l">desv. estándar de las 500 <span class="mx">x̄</span></span></div>
+          <div class="r"><span class="n b" id="rdSe">—</span><span class="l">teórica: <span class="mx">σ</span> / √<span class="mx">n</span></span></div>
+          <div class="r"><span class="n" id="rdRange">—</span><span class="l">mínimo y máximo</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Qué observar</h3>
+          <ul class="mb0">
+            <li>La media de las 500 <span class="mx">x̄</span> queda <strong>cerca de $51 800</strong> sin importar <span class="mx">n</span>.</li>
+            <li>La dispersión de las <span class="mx">x̄</span> <strong>se encoge</strong> al crecer <span class="mx">n</span>, y coincide con <span class="mx">σ</span>/√<span class="mx">n</span>.</li>
+            <li>Pulsa «Volver a muestrear»: el histograma cambia, la forma no.</li>
+          </ul>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Nota</span>
+          <p class="mb0">Población simulada con <span class="mx">μ</span> = 51 800 y <span class="mx">σ</span> = 4 000. En el bloque 3 veremos que estos tres hechos no son casualidad: tienen fórmula.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. CENTRO, FORMA, DISPERSIÓN ============ -->
+<section class="slide" data-sec="Distribuciones muestrales">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 2 · Cierre</p>
+    <h2>Tres cosas que describen una distribución muestral</h2>
+    <div class="grid g3 mt">
+      <div class="card card-accent">
+        <h3>El centro</h3>
+        <p class="mb0">El punto más alto de la distribución de <span class="mx">x̄</span> se alinea con el promedio real de la población, <span class="mx">μ</span>. Las medias muestrales no se sesgan sistemáticamente hacia arriba ni hacia abajo.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>La forma</h3>
+        <p class="mb0">Con muestras suficientemente grandes, la distribución de <span class="mx">x̄</span> toma forma de <strong>campana</strong> aunque la población no la tenga. Ese resultado tiene nombre: teorema del límite central.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>La dispersión</h3>
+        <p class="mb0">La gran mayoría de las medias muestrales cae <strong>cerca</strong> de <span class="mx">μ</span>, y qué tan cerca depende de <span class="mx">σ</span> y de <span class="mx">n</span>. Esa dispersión es el <strong>error estándar</strong>.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="k">Por qué importa</span>
+      <p class="mb0">La distribución muestral es lo que nos dice qué tan cerca o qué tan lejos se espera que esté <span class="mx">x̄</span> de <span class="mx">μ</span>. Sin ella no podríamos calcular márgenes de error ni niveles de confianza: la estimación sería un número sin garantía. El bloque 3 pone fórmulas a las tres cosas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. VALOR ESPERADO ============ -->
+<section class="slide" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Distribución muestral de <span class="mx">x̄</span></p>
+    <h2>El centro: valor esperado de <span class="mx">x̄</span></h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Si pudiéramos tomar <em>todas</em> las muestras posibles y promediar sus medias, ¿qué obtendríamos? Exactamente la media de la población:</p>
+        <div class="formula"><i>E</i>(<i>x̄</i>)<span class="op">=</span><i>μ</i><span class="lbl">para muestreo aleatorio simple</span></div>
+        <p>Para EAI, <span class="mx">E</span>(<span class="mx">x̄</span>) = $51 800. Es lo que vimos en la simulación: la media de las 500 medias rondaba ese valor con cualquier <span class="mx">n</span>.</p>
+        <div class="callout">
+          <span class="k">Vocabulario</span>
+          <p class="mb0">Cuando el valor esperado de un estimador es igual al parámetro que estima, el estimador es <strong>insesgado</strong>. <span class="mx">x̄</span> es un estimador insesgado de <span class="mx">μ</span>. Volveremos sobre esto en el bloque 4.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart plain" id="ch-center"></div>
+        <div class="card card-accent mt-s">
+          <h3>Lo que no dice el resultado</h3>
+          <p class="mb0">Que <span class="mx">E</span>(<span class="mx">x̄</span>) = <span class="mx">μ</span> no significa que <em>nuestra</em> <span class="mx">x̄</span> valga <span class="mx">μ</span>. Significa que el procedimiento no tiene una tendencia sistemática a errar en una dirección. Una muestra concreta puede quedar arriba o abajo; en promedio, acierta.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 14. ERROR ESTÁNDAR ============ -->
+<section class="slide dense" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Distribución muestral de <span class="mx">x̄</span></p>
+    <h2>La dispersión: desviación estándar de <span class="mx">x̄</span></h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="two-vs">
+          <div class="card card-accent">
+            <h3>Población infinita</h3>
+            <div class="formula sm"><i>σ</i><sub>x̄</sub><span class="op">=</span><span class="frac"><span><i>σ</i></span><span>√<i>n</i></span></span></div>
+            <p class="mb0 hint">También cuando la población es finita pero <span class="mx">n</span>/<span class="mx">N</span> ≤ 0.05.</p>
+          </div>
+          <div class="card">
+            <h3>Población finita</h3>
+            <div class="formula sm"><i>σ</i><sub>x̄</sub><span class="op">=</span><span class="sq"><span><span class="frac"><span><i>N</i> − <i>n</i></span><span><i>N</i> − 1</span></span></span></span><span class="frac"><span><i>σ</i></span><span>√<i>n</i></span></span></div>
+            <p class="mb0 hint">El primer factor es la <strong>corrección por población finita</strong>. Sólo pesa cuando la muestra es una fracción grande de la población.</p>
+          </div>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">EAI</span>
+          <p class="mb0"><span class="mx">n</span>/<span class="mx">N</span> = 30/2 500 = 0.012, muy por debajo de 0.05, así que se usa la fórmula simple: <span class="mx">σ</span><sub><span class="mx">x̄</span></sub> = 4 000 / √30 = <strong>$730.3</strong>. Con la corrección daría $726.1: la diferencia no justifica el trabajo.</p>
+        </div>
+        <p class="mb0">A la desviación estándar de un estimador puntual se le llama <strong>error estándar</strong>. Es la unidad con la que se mide qué tan lejos «suele» quedar la estimación del parámetro.</p>
+      </div>
+      <div>
+        <div class="chart" id="ch-se"></div>
+        <div class="card mt-s">
+          <h3>Cómo se lee</h3>
+          <p class="mb0">El error estándar cae con la <strong>raíz</strong> de <span class="mx">n</span>, no con <span class="mx">n</span>. Pasar de 30 a 100 gerentes lo reduce de $730 a $400; para bajarlo a $200 harían falta 400 gerentes. Cada mejora cuesta cuatro veces más que la anterior.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15. FORMA ============ -->
+<section class="slide" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Distribución muestral de <span class="mx">x̄</span></p>
+    <h2>La forma: dos casos</h2>
+    <div class="grid g2 mt">
+      <div class="card card-accent">
+        <h3>Caso 1 · La población tiene distribución normal</h3>
+        <p class="mb0">Entonces la distribución muestral de <span class="mx">x̄</span> es <strong>normal para cualquier tamaño de muestra</strong>, incluso <span class="mx">n</span> = 2. No hay nada que esperar ni que verificar.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>Caso 2 · La población no es normal (o no sabemos)</h3>
+        <p class="mb0">Aquí entra el <strong>teorema del límite central</strong>: al seleccionar muestras aleatorias simples de tamaño <span class="mx">n</span> de una población, la distribución muestral de <span class="mx">x̄</span> se aproxima a una distribución normal <strong>a medida que el tamaño de la muestra se hace grande</strong>.</p>
+      </div>
+    </div>
+    <div class="grid g-6-4">
+      <div>
+        <div class="callout">
+          <span class="k">¿Qué tan grande es «grande»?</span>
+          <p class="mb0">La práctica estadística usa <strong><span class="mx">n</span> ≥ 30</strong> como regla general: con 30 observaciones la aproximación normal es buena para la mayoría de las poblaciones. Si la población es <strong>muy sesgada</strong> o tiene valores atípicos, puede hacer falta <span class="mx">n</span> ≈ 50. Y si la población es normal, no hace falta nada.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-warn">
+          <h3>Lo que el teorema no dice</h3>
+          <p class="mb0">No dice que <em>los datos</em> se vuelvan normales al tener más de 30. Un ingreso sigue siendo sesgado con <span class="mx">n</span> = 10 000. Lo que se vuelve normal es la distribución de <strong>la media</strong> de esos datos. La siguiente lámina lo muestra.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16. TLC EN VIVO ============ -->
+<section class="slide dense" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 3 · Teorema del límite central, en vivo</p>
+    <h2>Tres poblaciones que no son normales</h2>
+    <div class="ctrl-row">
+      <span style="font-size:14px;color:var(--ink-2);font-weight:540">Población:</span>
+      <button data-pop="uni" class="on">Uniforme</button>
+      <button data-pop="ears">Orejas de conejo</button>
+      <button data-pop="skew">Sesgada</button>
+      <span style="font-size:14px;color:var(--ink-2);font-weight:540;margin-left:10px">Tamaño <span class="mx">n</span>:</span>
+      <button data-n="1">1</button>
+      <button data-n="2" class="on">2</button>
+      <button data-n="5">5</button>
+      <button data-n="30">30</button>
+      <button id="cltGo">Repetir</button>
+    </div>
+    <div class="grid g-5-5">
+      <div><div class="chart" id="ch-clt-pop"></div></div>
+      <div><div class="chart" id="ch-clt-sam"></div></div>
+    </div>
+    <div class="grid g-6-4 mt-s">
+      <div>
+        <p class="mb0">Izquierda, la población de la que se muestrea. Derecha, la distribución de <span class="mx">x̄</span> obtenida con <strong>3 000 muestras</strong> de tamaño <span class="mx">n</span>. Con <span class="mx">n</span> = 1 la derecha es la población misma. Con <span class="mx">n</span> = 2 ya se asoma un pico. Con <span class="mx">n</span> = 5 aparece la campana. Con <span class="mx">n</span> = 30 la forma original ya no se distingue, y la campana es más <strong>angosta</strong>: es el efecto de <span class="mx">σ</span>/√<span class="mx">n</span>.</p>
+      </div>
+      <div>
+        <div class="callout" style="margin:0">
+          <span class="k">Nota para la población sesgada</span>
+          <p class="mb0">Observa que con <span class="mx">n</span> = 5 todavía se ve la cola derecha. Es el caso donde la regla de 30 se queda corta si el sesgo es fuerte.</p>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Reproduce la figura 7.3 de Anderson con datos simulados en tu navegador.</p>
+  </div>
+</section>
+
+<!-- ============ 17. VALOR PRÁCTICO ============ -->
+<section class="slide dense" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Valor práctico de la distribución muestral</p>
+    <h2>¿Qué probabilidad hay de que <span class="mx">x̄</span> quede a ±$500 de <span class="mx">μ</span>?</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="ctrl-row">
+          <button data-prob="30" class="on"><span class="mx">n</span> = 30</button>
+          <button data-prob="100"><span class="mx">n</span> = 100</button>
+        </div>
+        <div class="chart" id="ch-prob"></div>
+      </div>
+      <div>
+        <div class="card card-accent" id="prob-steps"></div>
+        <div class="callout mt-s">
+          <span class="k">Cómo se lee</span>
+          <p class="mb0" id="prob-read"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 18. TAMAÑO DE MUESTRA ============ -->
+<section class="slide dense" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · La importancia del tamaño de la muestra</p>
+    <h2>Lo que compra una muestra más grande</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="chart" id="ch-two"></div>
+        <div class="legend"><span><i class="swatch" style="background:var(--s2)"></i><span class="mx">n</span> = 30 · error estándar $730.3</span><span><i class="swatch" style="background:var(--s1)"></i><span class="mx">n</span> = 100 · error estándar $400</span></div>
+      </div>
+      <div>
+        <div class="kpi" style="margin-top:0">
+          <div class="k"><span class="n">0.5034</span><span class="l">P(51 300 ≤ <span class="mx">x̄</span> ≤ 52 300) con <span class="mx">n</span> = 30</span></div>
+          <div class="k"><span class="n">0.7888</span><span class="l">la misma probabilidad con <span class="mx">n</span> = 100</span></div>
+        </div>
+        <div class="card card-accent">
+          <h3>Qué cambió y qué no</h3>
+          <ul class="mb0">
+            <li>El <strong>centro</strong> no se movió: <span class="mx">E</span>(<span class="mx">x̄</span>) = $51 800 en ambos casos.</li>
+            <li>El <strong>error estándar</strong> bajó de $730.3 a $400, y la campana se estrechó.</li>
+            <li>Por eso la misma franja de ±$500 ahora captura <strong>79 %</strong> de las medias muestrales en vez de 50 %.</li>
+          </ul>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">La idea</span>
+          <p class="mb0">Aumentar <span class="mx">n</span> no hace que <span class="mx">x̄</span> «acierte más»: hace que <strong>yerre menos</strong>. Es la única palanca que controla el investigador, y su costo crece más rápido que su beneficio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 19. DISTRIBUCIÓN DE p̄ ============ -->
+<section class="slide dense" data-sec="Distribución muestral de p̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Distribución muestral de <span class="mx">p̄</span></p>
+    <h2>La misma lógica para una proporción</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>La proporción muestral <span class="mx">p̄</span> = <span class="mx">x</span>/<span class="mx">n</span> también cambia de muestra a muestra, y su distribución muestral se describe con las mismas tres piezas:</p>
+        <div class="tbl-wrap">
+          <table class="t-left t-compact">
+            <thead><tr><th>Pieza</th><th>Resultado</th><th>EAI (<span class="mx">p</span> = 0.60, <span class="mx">n</span> = 30)</th></tr></thead>
+            <tbody>
+              <tr><td>Centro</td><td><span class="mx">E</span>(<span class="mx">p̄</span>) = <span class="mx">p</span></td><td>0.60</td></tr>
+              <tr><td>Dispersión</td><td><span class="mx">σ</span><sub><span class="mx">p̄</span></sub> = √[ <span class="mx">p</span>(1 − <span class="mx">p</span>) / <span class="mx">n</span> ]</td><td>√(0.6 × 0.4 / 30) = <strong>0.0894</strong></td></tr>
+              <tr><td>Forma</td><td>Normal si <span class="mx">np</span> ≥ 5 <strong>y</strong> <span class="mx">n</span>(1 − <span class="mx">p</span>) ≥ 5</td><td>18 y 12: se cumple</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Pregunta práctica</span>
+          <p class="mb0">¿Cuál es la probabilidad de que <span class="mx">p̄</span> quede a ±0.05 de <span class="mx">p</span>? <span class="mx">z</span> = 0.05 / 0.0894 = 0.56 → 0.7123 − 0.2877 = <strong>0.4246</strong>. Con 30 gerentes, sólo 42 % de las muestras dan una proporción entre 0.55 y 0.65. Para una proporción, 30 es poco.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart" id="ch-pprob"></div>
+        <p class="hint mt-s">Cuando <span class="mx">n</span>/<span class="mx">N</span> &gt; 0.05 se aplica la misma corrección por población finita que a <span class="mx">σ</span><sub><span class="mx">x̄</span></sub>. Para EAI no hace falta.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 20. CIERRE BLOQUE 3 ============ -->
+<section class="slide" data-sec="Distribución muestral de x̄">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 3 · Cierre</p>
+    <h2>La receta completa, en cinco pasos</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <ol>
+          <li><strong>Identifica el parámetro</strong> que interesa (<span class="mx">μ</span> o <span class="mx">p</span>) y el estimador que lo apunta (<span class="mx">x̄</span> o <span class="mx">p̄</span>).</li>
+          <li><strong>Centro</strong>: el valor esperado del estimador es el parámetro.</li>
+          <li><strong>Dispersión</strong>: calcula el error estándar, <span class="mx">σ</span>/√<span class="mx">n</span> o √[<span class="mx">p</span>(1 − <span class="mx">p</span>)/<span class="mx">n</span>], con corrección si <span class="mx">n</span>/<span class="mx">N</span> &gt; 0.05.</li>
+          <li><strong>Forma</strong>: normal si la población lo es, o si <span class="mx">n</span> ≥ 30 (para <span class="mx">p̄</span>: <span class="mx">np</span> ≥ 5 y <span class="mx">n</span>(1 − <span class="mx">p</span>) ≥ 5).</li>
+          <li><strong>Convierte a <span class="mx">z</span></strong> y lee la probabilidad en la tabla normal.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="card card-warn">
+          <h3>El detalle que se olvida</h3>
+          <p class="mb0">Las fórmulas usan <span class="mx">σ</span>, la desviación estándar <strong>de la población</strong>. En EAI la conocemos porque el ejemplo está armado así. En investigación real casi nunca: se sustituye por <span class="mx">s</span>, y eso abre el capítulo siguiente, la estimación por intervalo.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">La idea que se lleva del bloque</span>
+          <p class="mb0">Todo margen de error que van a reportar en su tesis es, en el fondo, un múltiplo del error estándar. Y el error estándar depende de dos cosas: la variabilidad de la población, que no controlan, y el tamaño de muestra, que sí.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 21. INSESGADEZ ============ -->
+<section class="slide dense" data-sec="Propiedades de los estimadores">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 4 · Propiedades de los estimadores puntuales</p>
+    <h2>1. Insesgadez</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Un estimador es <strong>insesgado</strong> si su valor esperado, es decir, el promedio de todas las estimaciones posibles, es igual al parámetro que intenta estimar:</p>
+        <div class="formula"><i>E</i>(<i class="hat">θ</i>)<span class="op">=</span><i>θ</i></div>
+        <p>Si no se cumple, la diferencia <span class="mx">E</span>(<span class="mx hat">θ</span>) − <span class="mx">θ</span> es el <strong>sesgo</strong>: un error sistemático que ninguna muestra grande corrige, porque no viene del azar sino del procedimiento.</p>
+        <div class="callout">
+          <span class="k">Lo que ya sabemos</span>
+          <p class="mb0"><span class="mx">x̄</span>, <span class="mx">s</span><sup>2</sup> y <span class="mx">p̄</span> son estimadores insesgados de <span class="mx">μ</span>, <span class="mx">σ</span><sup>2</sup> y <span class="mx">p</span>. Por eso la varianza muestral divide entre <span class="mx">n</span> − 1: dividir entre <span class="mx">n</span> la haría sesgada hacia abajo.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart" id="ch-unbiased"></div>
+        <div class="legend"><span><i class="swatch" style="background:var(--s1)"></i>Estimador insesgado: centrado en <span class="mx">θ</span></span><span><i class="swatch" style="background:var(--s2)"></i>Estimador sesgado: centrado en otro lado</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 22. EFICIENCIA ============ -->
+<section class="slide dense" data-sec="Propiedades de los estimadores">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 4 · Propiedades de los estimadores puntuales</p>
+    <h2>2. Eficiencia</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Entre dos estimadores <strong>insesgados</strong> del mismo parámetro, es más eficiente el que tiene <strong>menor error estándar</strong>: sus estimaciones se concentran más cerca del valor real.</p>
+        <div class="card card-accent">
+          <h3>El ejemplo clásico</h3>
+          <p class="mb0">Para una población normal, tanto la media muestral <span class="mx">x̄</span> como la mediana muestral son estimadores insesgados de <span class="mx">μ</span>. Pero el error estándar de la mediana es cerca de <strong>25 % mayor</strong> (≈ 1.25 <span class="mx">σ</span>/√<span class="mx">n</span>). Con la misma muestra, <span class="mx">x̄</span> es más precisa. Por eso se prefiere.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Cómo se traduce</span>
+          <p class="mb0">Usar el estimador menos eficiente equivale a <strong>tirar observaciones</strong>: para que la mediana alcance la precisión de <span class="mx">x̄</span> con <span class="mx">n</span> = 30 se necesitarían unas 47 observaciones.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart" id="ch-efficient"></div>
+        <div class="legend"><span><i class="swatch" style="background:var(--s1)"></i>Media muestral <span class="mx">x̄</span></span><span><i class="swatch" style="background:var(--s4)"></i>Mediana muestral</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 23. CONSISTENCIA ============ -->
+<section class="slide dense" data-sec="Propiedades de los estimadores">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 4 · Propiedades de los estimadores puntuales</p>
+    <h2>3. Consistencia, y las tres propiedades juntas</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <p>Un estimador es <strong>consistente</strong> si, a medida que el tamaño de la muestra crece, sus valores tienden a acercarse al parámetro. Es una propiedad <em>asintótica</em>: habla de lo que pasa cuando <span class="mx">n</span> se hace grande.</p>
+        <p><span class="mx">x̄</span> es consistente porque su error estándar, <span class="mx">σ</span>/√<span class="mx">n</span>, <strong>tiende a cero</strong> al crecer <span class="mx">n</span>. Lo mismo <span class="mx">p̄</span>.</p>
+        <div class="tbl-wrap">
+          <table class="t-left t-compact">
+            <thead><tr><th>Propiedad</th><th>Pregunta que responde</th><th>Criterio</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Insesgadez</strong></td><td>¿Apunta al lugar correcto?</td><td><span class="mx">E</span>(<span class="mx hat">θ</span>) = <span class="mx">θ</span></td></tr>
+              <tr><td><strong>Eficiencia</strong></td><td>¿Cuál dispersa menos?</td><td>Menor error estándar entre insesgados</td></tr>
+              <tr><td><strong>Consistencia</strong></td><td>¿Mejora con más datos?</td><td>Error estándar → 0 cuando <span class="mx">n</span> → ∞</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="chart" id="ch-consistent"></div>
+        <div class="legend"><span><i class="swatch" style="background:var(--seq-200)"></i><span class="mx">n</span> = 10</span><span><i class="swatch" style="background:var(--seq-400)"></i><span class="mx">n</span> = 30</span><span><i class="swatch" style="background:var(--seq-700)"></i><span class="mx">n</span> = 120</span></div>
+        <div class="callout mt-s">
+          <span class="k">La idea que se lleva del bloque</span>
+          <p class="mb0">Elegir el estimador correcto es una decisión de diseño, no de software. <span class="mx">x̄</span>, <span class="mx">s</span> y <span class="mx">p̄</span> cumplen las tres propiedades, y por eso son los que usa todo el mundo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 24. MAPA DE MÉTODOS ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 5 · Otros métodos de muestreo</p>
+    <h2>El muestreo aleatorio simple no es el único; sí es el patrón</h2>
+    <div class="grid g2 mt">
+      <div class="card card-ok">
+        <h3 class="yes">Muestreo probabilístico</h3>
+        <p>Cada elemento tiene una probabilidad <strong>conocida</strong> de ser seleccionado. Sólo con estos métodos se puede calcular el error muestral y hacer inferencia estadística.</p>
+        <ul class="mb0">
+          <li><strong>Aleatorio simple</strong>: el que vimos. Es el punto de referencia de los demás.</li>
+          <li><strong>Aleatorio estratificado</strong>: se divide la población en grupos y se muestrea dentro de cada uno.</li>
+          <li><strong>Por conglomerados</strong>: se divide en grupos y se muestrean <em>grupos</em> completos.</li>
+          <li><strong>Sistemático</strong>: se toma cada <span class="mx">k</span>-ésimo elemento de la lista.</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <h3 class="no">Muestreo no probabilístico</h3>
+        <p>La probabilidad de selección se desconoce. Son más baratos y rápidos, pero <strong>no se puede evaluar estadísticamente</strong> qué tan buena es la muestra.</p>
+        <ul class="mb0">
+          <li><strong>De conveniencia</strong>: se toman los elementos que están a la mano.</li>
+          <li><strong>Subjetivo</strong> (o de juicio): alguien con conocimiento del tema elige los elementos que considera representativos.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="k">Un criterio para toda la sesión</span>
+      <p class="mb0">Las fórmulas de error estándar del bloque 3 corresponden al muestreo aleatorio simple. Los otros métodos probabilísticos tienen las suyas (más complejas) y los no probabilísticos <strong>no tienen ninguna</strong>. Si un artículo reporta margen de error con una muestra de conveniencia, ese número no significa lo que parece.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 25. ESTRATIFICADO ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 5 · Métodos probabilísticos</p>
+    <h2>Muestreo aleatorio estratificado</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="chart plain" id="ch-strat"></div>
+        <div class="dot-legend"><span><i style="background:var(--s1)"></i>Estrato 1</span><span><i style="background:var(--s3)"></i>Estrato 2</span><span><i style="background:var(--s4)"></i>Estrato 3</span><span><i style="background:var(--brand)"></i>Seleccionados</span></div>
+      </div>
+      <div>
+        <p>La población se divide en grupos llamados <strong>estratos</strong>, de modo que cada elemento pertenezca a uno y sólo uno. Después se toma una muestra aleatoria simple <strong>de cada estrato</strong> y los resultados se combinan con pesos según el tamaño de cada uno.</p>
+        <div class="card card-accent">
+          <h3>Cuándo funciona mejor</h3>
+          <p class="mb0">Cuando los elementos son <strong>parecidos dentro de cada estrato</strong> y distintos entre estratos: departamento, ubicación, grupo de edad, tamaño de empresa, sector. Con estratos homogéneos, la estimación alcanza la misma precisión que el aleatorio simple <strong>con menos observaciones</strong>.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Lo que aporta además</span>
+          <p class="mb0">Garantiza que todos los grupos estén representados, incluso los pequeños, y permite reportar resultados <strong>por estrato</strong>. En el ejercicio de hogares, la colonia es el estrato.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 26. CONGLOMERADOS ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 5 · Métodos probabilísticos</p>
+    <h2>Muestreo por conglomerados</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="chart plain" id="ch-cluster"></div>
+        <div class="dot-legend"><span><i style="background:var(--ink-3)"></i>Elementos de la población</span><span><i style="background:var(--brand)"></i>Conglomerados seleccionados (todos sus elementos)</span></div>
+      </div>
+      <div>
+        <p>La población se divide en grupos llamados <strong>conglomerados</strong>, se selecciona una muestra aleatoria simple <strong>de conglomerados</strong>, y se observan todos los elementos de los seleccionados (o una muestra dentro de cada uno: muestreo en dos etapas).</p>
+        <div class="card card-accent">
+          <h3>Cuándo funciona mejor</h3>
+          <p class="mb0">Cuando cada conglomerado es una <strong>versión en pequeño de la población</strong>: heterogéneo por dentro, parecido a los demás. Es lo contrario del estratificado. El caso típico es el <strong>muestreo por áreas</strong>: manzanas de una ciudad, escuelas de un estado.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">El intercambio</span>
+          <p class="mb0">Se gana <strong>costo</strong>: encuestar tres manzanas completas es mucho más barato que buscar 60 hogares dispersos por la ciudad. Se pierde precisión: para el mismo error estándar suele requerir un tamaño de muestra <strong>mayor</strong> que el aleatorio simple.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 27. SISTEMÁTICO ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 5 · Métodos probabilísticos</p>
+    <h2>Muestreo sistemático</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="ctrl-row">
+          <label>Lista de <span class="mx">N</span> = <span class="val" id="sysNv">40</span> <input type="range" id="sysN" min="20" max="60" step="5" value="40"></label>
+          <label>Muestra <span class="mx">n</span> = <span class="val" id="sysnv">8</span> <input type="range" id="sysn" min="2" max="12" step="1" value="8"></label>
+          <button id="sysGo" class="on">Nuevo inicio aleatorio</button>
+        </div>
+        <div class="chart plain" id="ch-sys"></div>
+        <p class="hint mb0" id="sysRead"></p>
+      </div>
+      <div>
+        <p>Se calcula <span class="mx">k</span> = <span class="mx">N</span>/<span class="mx">n</span>, se elige <strong>al azar un punto de inicio</strong> entre los primeros <span class="mx">k</span> elementos, y a partir de ahí se toma <strong>cada <span class="mx">k</span>-ésimo</strong>. Con <span class="mx">N</span> = 5 000 y <span class="mx">n</span> = 50, uno de cada 100.</p>
+        <div class="card card-accent">
+          <h3>Cuándo conviene</h3>
+          <p class="mb0">Cuando la lista es muy larga y generar números aleatorios para toda ella sería lento: expedientes en un archivero, clientes en fila, facturas numeradas. Sólo se necesita un número aleatorio.</p>
+        </div>
+        <div class="card card-warn mt-s">
+          <h3>El supuesto</h3>
+          <p class="mb0">La lista debe estar en <strong>orden aleatorio respecto a la variable de interés</strong>. Si tiene un patrón periódico (por ejemplo, un jefe de área cada 10 registros), cada <span class="mx">k</span>-ésimo puede caer siempre en el mismo tipo de elemento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 28. NO PROBABILÍSTICOS ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 5 · Métodos no probabilísticos</p>
+    <h2>Conveniencia y juicio: útiles, pero sin garantías</h2>
+    <div class="grid g2 mt">
+      <div>
+        <div class="chart plain" id="ch-conv"></div>
+        <div class="card mt-s">
+          <h3>Muestreo de conveniencia</h3>
+          <p class="mb0">Se seleccionan los elementos que resultan <strong>más accesibles</strong>: un profesor que encuesta a sus propios alumnos, entrevistas en la entrada de un centro comercial, los animales que cayeron en la trampa. Es fácil de obtener; el problema es que los accesibles rara vez se parecen al resto.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart plain" id="ch-judg"></div>
+        <div class="card mt-s">
+          <h3>Muestreo subjetivo (de juicio)</h3>
+          <p class="mb0">Una persona con <strong>conocimiento del tema</strong> elige los elementos que considera representativos: un reportero selecciona a dos o tres senadores que, a su juicio, reflejan la opinión del Senado. La calidad de la muestra depende por completo de la calidad del juicio.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="k">Para qué sí sirven</span>
+      <p class="mb0">Estudios exploratorios, pruebas piloto de un cuestionario, casos donde no existe marco muestral y el objetivo es <strong>generar hipótesis</strong>, no probarlas. Lo que no se puede hacer es reportar un error estándar o un intervalo de confianza como si la muestra fuera aleatoria.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 29. CUÁNDO USAR CUÁL ============ -->
+<section class="slide dense" data-sec="Otros métodos de muestreo">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 5 · Cierre</p>
+    <h2>Cuándo usar cuál</h2>
+    <div class="tbl-wrap mt">
+      <table class="t-left t-compact">
+        <thead><tr><th>Método</th><th>Requiere</th><th>Funciona mejor cuando</th><th>Ventaja</th><th>Riesgo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Aleatorio simple</strong></td><td>Lista completa de la población</td><td>La población es manejable y accesible</td><td>Fórmulas simples; es el patrón de referencia</td><td>Puede dejar grupos pequeños sin representar</td></tr>
+          <tr><td><strong>Estratificado</strong></td><td>Lista con la variable de estratificación</td><td>Grupos homogéneos por dentro, distintos entre sí</td><td>Más precisión con menos <span class="mx">n</span>; resultados por grupo</td><td>Estratos mal definidos no aportan nada</td></tr>
+          <tr><td><strong>Conglomerados</strong></td><td>Lista de grupos, no de elementos</td><td>Cada grupo es una población en pequeño</td><td>Mucho menor costo de campo</td><td>Menor precisión; requiere <span class="mx">n</span> mayor</td></tr>
+          <tr><td><strong>Sistemático</strong></td><td>Lista ordenada, un solo número aleatorio</td><td>La lista es larga y no tiene ciclos</td><td>Rápido y fácil de ejecutar</td><td>Patrones periódicos en la lista</td></tr>
+          <tr><td><strong>Conveniencia</strong></td><td>Nada</td><td>Exploración, piloto</td><td>Costo mínimo</td><td>No hay inferencia posible</td></tr>
+          <tr><td><strong>Subjetivo</strong></td><td>Un experto</td><td>Casos típicos o extremos</td><td>Rápido; casos ricos en información</td><td>Depende del juicio de una persona</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="k">La idea que se lleva del bloque</span>
+      <p class="mb0">El método no lo dicta el software sino tres preguntas: <strong>¿tengo lista?</strong>, <strong>¿la población tiene grupos que importan?</strong> y <strong>¿cuánto cuesta llegar a cada elemento?</strong> Los ejercicios que siguen aplican tres de estos métodos a las mismas bases, precisamente para comparar qué cambia en las estimaciones.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 30. PRESENTACIÓN DE EJERCICIOS ============ -->
+<section class="slide" data-sec="Ejercicios en SPSS">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 6 · <span class="badge b1">Ejercicios en SPSS</span> · Todos al mismo tiempo</p>
+    <h2>Tres esquemas de muestreo sobre las mismas bases</h2>
+    <div class="grid g3 mt">
+      <div class="card card-accent">
+        <h3>Ejercicio 1 · Escuelas</h3>
+        <p><span class="mono">Escuelas.sav</span>: <strong>600 escuelas</strong> en 20 distritos. Muestreo <strong>aleatorio simple</strong> con <span class="mx">n</span> = 235.</p>
+        <p class="mb0">Estimación puntual de la media de <span class="mono">Puntaje</span> y de <span class="mono">Ausentismo</span>, comparada con la base completa.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>Ejercicio 2 · Hogares</h3>
+        <p><span class="mono">Hogares.sav</span>: <strong>1 000 hogares</strong> en 25 colonias de 40. <strong>Estratificado</strong> por colonia y <strong>por conglomerados</strong> (colonias completas).</p>
+        <p class="mb0">Media de <span class="mono">Ingreso</span> y proporción de hogares con <span class="mono">Internet</span>, comparadas entre esquemas.</p>
+      </div>
+      <div class="card">
+        <h3>Actividad adicional · Escuelas</h3>
+        <p><strong>Conglomerados</strong>: los 20 distritos de 30 escuelas; se sortean 8. Trabajo autónomo.</p>
+        <p class="mb0">Estimar la media de <span class="mono">Puntaje</span> o <span class="mono">Ausentismo</span> y comparar los tres esquemas en una sola tabla.</p>
+      </div>
+    </div>
+    <div class="grid g-6-4">
+      <div>
+        <div class="callout" style="margin-top:0">
+          <span class="k">Qué vamos a comparar</span>
+          <p class="mb0">En cada esquema, la <strong>media</strong>, la <strong>desviación estándar</strong> y el <strong>error estándar de la media</strong> que reporta SPSS, contra el valor de la base completa. La diferencia entre la estimación y el valor completo es el error muestral en vivo; el error estándar es cuánto «debería» variar.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-ok">
+          <h3>Bases de datos</h3>
+          <p>Descárgalas y ábrelas en SPSS <strong>antes</strong> de la sesión:</p>
+          <div class="dl" style="margin:0">
+            <a href="datos/Escuelas.sav" download>Escuelas <span class="mono">.sav</span></a>
+            <a href="datos/Hogares.sav" download>Hogares <span class="mono">.sav</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 31. TAMAÑO DE MUESTRA ============ -->
+<section class="slide dense" data-sec="Ejercicios en SPSS">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 6 · Paso previo</p>
+    <h2>Antes de muestrear: ¿de qué tamaño?</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="card">
+          <h3>Calculadora del tamaño de la muestra</h3>
+          <div class="calc">
+            <label><span>Población <span class="mx">N</span></span><input type="number" id="ssN" value="600" min="1" max="100000000"></label>
+            <label><span>Nivel de confianza</span><select id="ssZ"><option value="1.645">90 %</option><option value="1.96" selected>95 %</option><option value="2.576">99 %</option></select></label>
+            <label><span>Margen de error</span><select id="ssE"><option value="0.03">3 %</option><option value="0.05" selected>5 %</option><option value="0.07">7 %</option><option value="0.10">10 %</option></select></label>
+          </div>
+          <div class="result"><span class="big" id="ssRes">—</span><span class="lbl" id="ssLbl"></span></div>
+          <p class="hint mb0">Mismo cálculo que la calculadora de SurveyMonkey, con <span class="mx">p</span> = 0.5 (el caso más exigente). Escuelas: <span class="mx">N</span> = 600 → <strong>235</strong>. Hogares: <span class="mx">N</span> = 1 000 → <strong>278</strong>.</p>
+        </div>
+      </div>
+      <div>
+        <p>La fórmula viene del capítulo siguiente, pero la necesitamos hoy para decidir cuántos casos pedirle a SPSS:</p>
+        <div class="formula sm"><i>n</i><span class="op">=</span><span class="frac"><span><i>n</i><sub>0</sub></span><span>1 + <i>n</i><sub>0</sub> / <i>N</i></span></span><span class="op" style="margin:0 .7em">con</span><i>n</i><sub>0</sub><span class="op">=</span><span class="frac"><span><i>z</i><sup>2</sup> <i>p</i>(1 − <i>p</i>)</span><span><i>e</i><sup>2</sup></span></span></div>
+        <div class="card card-accent">
+          <h3>Cómo se lee</h3>
+          <ul class="mb0">
+            <li><span class="mx">n</span><sub>0</sub> es el tamaño para una población infinita; el denominador lo corrige para una población finita de tamaño <span class="mx">N</span>.</li>
+            <li>Bajar el margen de error de 5 % a 3 % <strong>casi triplica</strong> la muestra: prueba con la calculadora.</li>
+            <li>Cuando <span class="mx">N</span> es muy grande, la corrección deja de importar: 384 casos bastan para 95 % y ±5 % en cualquier población grande.</li>
+            <li>En nuestras bases <span class="mx">n</span>/<span class="mx">N</span> vale 0.39 y 0.28, muy por encima de 0.05: el error estándar lleva la <strong>corrección por población finita</strong> de la lámina 14.</li>
+          </ul>
+        </div>
+        <div class="tbl-wrap mt-s">
+          <table class="t-compact">
+            <thead><tr><th>Población <span class="mx">N</span></th><th>100</th><th class="hl">600</th><th class="hl">1 000</th><th>5 000</th><th>100 000</th></tr></thead>
+            <tbody><tr><td><span class="mx">n</span> para 95 % y ±5 %</td><td>80</td><td class="hl">235</td><td class="hl">278</td><td>357</td><td>383</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 32. EJERCICIO 1 ============ -->
+<section class="slide dense" data-sec="Ejercicios en SPSS">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 6 · <span class="badge b1">Ejercicio 1</span> · Muestreo aleatorio simple</p>
+    <h2>Escuelas: una muestra aleatoria simple en SPSS</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="spss">
+          <div class="hd"><span class="tag">SPSS</span><b>Seleccionar la muestra y describirla</b></div>
+          <ol>
+            <li>Abre <span class="mono">Escuelas.sav</span> (<span class="mx">N</span> = 600). Fija la semilla: <span class="path">Transformar &gt; Generadores de números aleatorios…</span> → <em>Valor fijo</em> <span class="mono">2026</span>.</li>
+            <li><span class="path">Datos &gt; Seleccionar casos…</span> → <em>Muestra aleatoria de casos</em> → botón <strong>Ejemplo…</strong> → <em>Exactamente</em> <span class="mono">235</span> <em>casos de los primeros</em> <span class="mono">600</span> <em>casos</em>.</li>
+            <li>En <em>Salida</em>, elige <strong>Copiar casos seleccionados a un nuevo conjunto de datos</strong> y nómbralo <span class="mono">muestra_1</span>. Aceptar. Se abre una ventana nueva con la muestra.</li>
+            <li>En <span class="mono">muestra_1</span>: <span class="path">Analizar &gt; Estadísticos descriptivos &gt; Frecuencias…</span> → pasa <span class="mono">Puntaje</span> y <span class="mono">Ausentismo</span>. En <strong>Estadísticos…</strong> marca Media, Mediana, Moda, Suma, Desv. estándar, Varianza y <strong>E.T. media</strong>. En <strong>Gráficos…</strong>, Histogramas. Aceptar.</li>
+            <li>Vuelve a la base completa y repite el paso 4. Compara las dos salidas.</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="card card-ok">
+          <h3>Verifica y compara</h3>
+          <div class="tbl-wrap">
+            <table class="t-compact">
+              <thead><tr><th>Estadístico</th><th>Base completa</th><th>muestra_1</th></tr></thead>
+              <tbody>
+                <tr><td>Media de Puntaje</td><td class="hl">72.07</td><td>·</td></tr>
+                <tr><td>Desv. estándar de Puntaje</td><td class="hl">7.73</td><td>·</td></tr>
+                <tr><td>Media de Ausentismo</td><td class="hl">11.75</td><td>·</td></tr>
+                <tr><td>Desv. estándar de Ausentismo</td><td class="hl">4.60</td><td>·</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="hint mb0">Error estándar teórico: 7.73/√235 = <strong>0.50</strong> para Puntaje y <strong>0.30</strong> para Ausentismo (0.39 y 0.23 con la corrección por población finita). La media de la muestra <strong>no</strong> va a coincidir con la completa; la pregunta es si la diferencia es de ese orden o mucho mayor.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Por qué la semilla</span>
+          <p class="mb0">Con la misma semilla todos obtienen la misma muestra y pueden verificar entre sí. Sin ella, cada quien obtiene una distinta: no es un error, es la variabilidad muestral en vivo. Las dos cosas sirven para la sesión.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 33. EJERCICIO 2 ============ -->
+<section class="slide dense" data-sec="Ejercicios en SPSS">
+  <div class="slide-inner">
+    <p class="eyebrow">Bloque 6 · <span class="badge b1">Ejercicio 2</span> · Estratos y conglomerados</p>
+    <h2>Hogares: dos esquemas más sobre la misma base</h2>
+    <div class="grid g-5-5 mt">
+      <div>
+        <div class="spss">
+          <div class="hd"><span class="tag">SPSS</span><b>Estratificado: 11 hogares de cada colonia</b></div>
+          <ol>
+            <li>Abre <span class="mono">Hogares.sav</span> (<span class="mx">N</span> = 1 000). En <em>Vista de variables</em> pon <span class="mono">Colonia</span> con <strong>Medida: Nominal</strong>.</li>
+            <li><span class="path">Analizar &gt; Estadísticos descriptivos &gt; Frecuencias…</span> sobre <span class="mono">Colonia</span>: 25 colonias de 40 hogares. Asignación proporcional: 278 × 40/1 000 ≈ <strong>11 por colonia</strong> (275 en total).</li>
+            <li>Para cada colonia: <span class="path">Datos &gt; Seleccionar casos…</span> → <em>Si se satisface la condición</em> → <span class="mono">Colonia = 1</span> → <em>Copiar a nuevo conjunto</em> <span class="mono">Edu1</span>.</li>
+            <li>En <span class="mono">Edu1</span>: <em>Muestra aleatoria</em> → <em>Exactamente 11 de los primeros 40</em> → nuevo conjunto <span class="mono">m_col1</span>. Repite para las 25 colonias.</li>
+            <li>Une los 25 conjuntos con <span class="path">Datos &gt; Fundir archivos &gt; Añadir casos…</span> y calcula media de <span class="mono">Ingreso</span> y porcentaje de <span class="mono">Internet</span>. Como los estratos son iguales, la media simple ya es la estratificada.</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="spss">
+          <div class="hd"><span class="tag">SPSS</span><b>Conglomerados: 7 colonias completas</b></div>
+          <ol>
+            <li>El conglomerado es la <strong>colonia entera</strong> (40 hogares). Se sortean <strong>7 de las 25</strong>: 280 hogares, casi el mismo <span class="mx">n</span>. Elige las siete con dígitos aleatorios entre 01 y 25.</li>
+            <li>Por rango de casos: la colonia <span class="mx">k</span> ocupa los casos 40(<span class="mx">k</span> − 1) + 1 a 40<span class="mx">k</span>. <span class="path">Datos &gt; Seleccionar casos…</span> → <em>Basándose en el rango de tiempo o de casos</em> → <strong>Rango…</strong> → por ejemplo <span class="mono">41</span> a <span class="mono">80</span> para la colonia 2.</li>
+            <li>O en un solo paso: <em>Si se satisface la condición</em> → <span class="mono">ANY(Colonia, 2, 5, 9, 14, 17, 21, 24)</span> con tus siete números → nuevo conjunto <span class="mono">muestra_conglomerados</span>.</li>
+            <li>Calcula media de <span class="mono">Ingreso</span> y porcentaje de <span class="mono">Internet</span> sobre los 280 hogares.</li>
+          </ol>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Qué comparar al final</span>
+          <p class="mb0">Valores verdaderos: <span class="mx">μ</span> = <strong>$16 995.6</strong>, <span class="mx">σ</span> = $7 120.7, <span class="mx">p</span> = <strong>0.802</strong> con internet. Las colonias van de $9 300 a $25 400 de ingreso medio: estratificar <strong>ayuda</strong> (error estándar ≈ $364 contra $427) y muestrear colonias enteras <strong>cuesta</strong> (≈ $1 270). Eso es lo que debe verse en la tabla.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 34. ACTIVIDAD ADICIONAL ============ -->
+<section class="slide" data-sec="Ejercicios en SPSS">
+  <div class="slide-inner center">
+    <p class="eyebrow">Bloque 6 · <span class="badge b1">Actividad adicional</span> · Trabajo autónomo</p>
+    <h2>Conglomerados en Escuelas, por su cuenta</h2>
+    <div class="grid g3 mt">
+      <div class="card card-accent">
+        <h3>Qué hacer</h3>
+        <ol class="mb0">
+          <li>En <span class="mono">Escuelas.sav</span> el conglomerado es el <strong>distrito</strong>: 20 distritos de 30 escuelas. Sortea 8 y extráelos con <span class="mono">ANY(Distrito, …)</span>: 240 escuelas.</li>
+          <li>Calcula la estimación puntual de la media de <span class="mono">Puntaje</span> o de <span class="mono">Ausentismo</span>, con su error estándar.</li>
+          <li>Agrega una muestra <strong>estratificada por <span class="mono">Nivel</span></strong> (118, 70 y 47 escuelas de los niveles 1, 2 y 3) y reúne los <strong>tres esquemas</strong> y la base completa en una tabla.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Qué entregar</h3>
+        <p>Un solo archivo PDF exportado del Visor de resultados de SPSS: <span class="path">Archivo &gt; Exportar…</span> → tipo <strong>PDF</strong>.</p>
+        <p class="mb0">Con la tabla comparativa y un <strong>párrafo breve</strong> que diga cuál esquema quedó más cerca del valor completo y por qué eso no es garantía de que siempre lo hará.</p>
+      </div>
+      <div>
+        <div class="card card-ok">
+          <h3 class="yes">Lo que se busca</h3>
+          <p class="mb0">No que la muestra «atine». Que el párrafo distinga <strong>error muestral</strong> (la diferencia que sí observaron) de <strong>error estándar</strong> (la diferencia que era esperable), y que use ese contraste para juzgar cada esquema.</p>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Pista</span>
+          <p class="mb0">Los distritos difieren (medias de Puntaje de 64.7 a 79.1), así que la estimación por conglomerados tiene el doble de error estándar que la aleatoria simple. Estratificar por nivel, en cambio, casi no cambia nada: los tres niveles se parecen. Las dos cosas son la lección del bloque 5.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 35. REFERENCIAS ============ -->
+<section class="slide" data-sec="Referencias">
+  <div class="slide-inner center">
+    <p class="eyebrow">Referencias</p>
+    <h2>Fuentes de la sesión</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="card">
+          <h3>Texto base</h3>
+          <p>Anderson, D. R., Sweeney, D. J., &amp; Williams, T. A. (2008). <em>Estadística para administración y economía</em> (10a. ed.). Cengage Learning. ISBN-13: 978-607-481-319-7. Capítulo 7, <em>Muestreo y distribuciones muestrales</em>.</p>
+          <p class="mb0">Todas las cifras del ejemplo de Electronics Associates (<span class="mx">N</span> = 2 500, <span class="mx">μ</span> = $51 800, <span class="mx">σ</span> = $4 000, <span class="mx">p</span> = 0.60; muestra de 30 con <span class="mx">x̄</span> = $51 814, <span class="mx">s</span> = $3 348, <span class="mx">p̄</span> = 0.63) y las probabilidades 0.5034, 0.7888 y 0.4246 provienen de ese capítulo.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Herramientas</h3>
+          <ul class="mb0">
+            <li>IBM SPSS Statistics, versión 25 o superior, en español.</li>
+            <li>Calculadora del tamaño de la muestra de <a href="https://es.surveymonkey.com/mp/sample-size-calculator/" target="_blank" rel="noopener">SurveyMonkey</a>, replicada en la lámina 31.</li>
+            <li>Simulaciones de las láminas 11 y 16 generadas en el navegador; no requieren conexión.</li>
+          </ul>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Material del editor</span>
+          <p class="mb0"><a href="http://latinoamerica.cengage.com" target="_blank" rel="noopener">latinoamerica.cengage.com</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 36. MATERIALES ============ -->
+<section class="slide" data-sec="Materiales">
+  <div class="slide-inner center">
+    <p class="eyebrow">Materiales de la sesión</p>
+    <h2>Lo que necesitas tener a la mano</h2>
+    <div class="grid g-6-4 mt">
+      <div>
+        <div class="card">
+          <h3>Bases de datos para SPSS</h3>
+          <p class="hint">Abren directo en SPSS. <span class="mono">Escuelas</span>: 600 escuelas, 9 variables. <span class="mono">Hogares</span>: 1 000 hogares, 9 variables. En Hogares, cambia la medida de <span class="mono">Colonia</span> a Nominal.</p>
+          <div class="dl">
+            <a href="datos/Escuelas.sav" download>Escuelas <span class="mono">.sav</span></a>
+            <a href="datos/Hogares.sav" download>Hogares <span class="mono">.sav</span></a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Documentos</h3>
+          <div class="dl" style="flex-direction:column">
+            <a href="docs/Presentacion_muestreo.pdf" download>Esta presentación completa <span class="mono">PDF</span></a>
+            <a href="docs/Guia_SPSS.pdf" download>Guía de SPSS para los ejercicios <span class="mono">PDF</span></a>
+          </div>
+        </div>
+        <div class="callout mt-s">
+          <span class="k">Antes de la sesión</span>
+          <p class="mb0">Descarga las dos bases y la guía, y confirma que abren en tu SPSS. Si algo falla, avísame <strong>antes</strong> de la sesión, no durante.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 37. ÍNDICE FINAL ============ -->
+<section class="slide" data-sec="Índice">
+  <div class="slide-inner center">
+    <p class="eyebrow">Universidad de Sonora · Doctorado en Ciencias Económicas y Administrativas</p>
+    <h2>Muestreo y distribuciones muestrales</h2>
+    <p class="lead">Pulsa cualquier bloque para volver a él. También funcionan las teclas <kbd>1</kbd> a <kbd>6</kbd>.</p>
+    <div class="blocks" id="blocks-fin" style="margin:22px 0 0"></div>
+    <p class="hint mt">Luis Antonio Alonso Reyna · Dr. Sergio Ramón Rossetti López · Septiembre 2026</p>
+  </div>
+</section>
+
+</div><!-- /#deck -->
+
+<div id="menu">
+  <div class="mwrap">
+    <div class="mh">
+      <h2>Bloques de la sesión</h2>
+      <p class="msub">Pulsa el número del bloque para saltar directo · <kbd>M</kbd> o <kbd>Esc</kbd> para volver</p>
+    </div>
+    <div class="blocks" id="blocks"></div>
+    <h3 style="font-size:15px;margin-bottom:14px">Todas las láminas</h3>
+    <div class="toc" id="toc"></div>
+  </div>
+</div>
+
+<div id="bar">
+  <button id="btn-menu" title="Bloques (M)">Bloques</button>
+  <button id="btn-prev" title="Anterior (←)">←</button>
+  <button id="btn-next" title="Siguiente (→)">→</button>
+  <span class="sec" id="secname"></span>
+  <button id="btn-theme" title="Tema (T)">Tema</button>
+  <button id="btn-print" title="Exportar a PDF">PDF</button>
+  <span class="cnt" id="counter"></span>
+</div>
+
+<script>
+"use strict";
+/* ==================== UTILIDADES ==================== */
+const $ = (s,r) => (r||document).querySelector(s);
+const $$ = (s,r) => Array.from((r||document).querySelectorAll(s));
+const NS = "http://www.w3.org/2000/svg";
+const THIN = " ";
+function fmt(v,d){
+  d = d===undefined?0:d;
+  const neg = v<0; v = Math.abs(v);
+  const parts = v.toFixed(d).split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, THIN);
+  return (neg?"−":"") + parts.join(".");
+}
+const money = (v,d) => "$" + fmt(v,d);
+const sum = a => a.reduce((x,y)=>x+y,0);
+function el(tag, attrs, txt){
+  const n = document.createElementNS(NS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(txt!=null) n.textContent = txt;
+  return n;
+}
+function mkSvg(host, w, h){
+  host.innerHTML = "";
+  const s = el("svg",{viewBox:`0 0 ${w} ${h}`, preserveAspectRatio:"xMidYMid meet", role:"img"});
+  s.style.maxWidth = w+"px";
+  host.appendChild(s);
+  return s;
+}
+function chartShell(host, title, sub){
+  host.innerHTML = "";
+  if(title){ const t=document.createElement("p"); t.className="ctitle"; t.textContent=title; host.appendChild(t); }
+  if(sub){ const p=document.createElement("p"); p.className="csub"; p.textContent=sub; host.appendChild(p); }
+  const box=document.createElement("div"); host.appendChild(box);
+  return box;
+}
+function niceTicks(max, n){
+  n = n||5;
+  if(!(max>0)) return [0,1];
+  const raw = max/n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw/mag;
+  const step = (norm<=1?1:norm<=2?2:norm<=2.5?2.5:norm<=5?5:10)*mag;
+  const r = v => Math.round(v*1e6)/1e6;
+  const out=[]; let v=0;
+  while(v < max-1e-9){ out.push(r(v)); v+=step; }
+  out.push(r(v));
+  return out;
+}
+const TIP = $("#tip");
+function tipOn(e, html){
+  TIP.innerHTML = html; TIP.classList.add("on");
+  const r = TIP.getBoundingClientRect();
+  let x = e.clientX+14, y = e.clientY-r.height-12;
+  if(x+r.width>innerWidth-10) x = e.clientX-r.width-14;
+  if(y<10) y = e.clientY+18;
+  TIP.style.left = x+"px"; TIP.style.top = y+"px";
+}
+function tipOff(){ TIP.classList.remove("on"); }
+function hoverable(node, html){
+  node.classList.add("mark");
+  node.addEventListener("mousemove", e=>tipOn(e,html));
+  node.addEventListener("mouseleave", tipOff);
+}
+function cssv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* ==================== MATEMÁTICAS ==================== */
+function erf(x){
+  const sgn = x<0?-1:1; x = Math.abs(x);
+  const t = 1/(1+0.3275911*x);
+  const y = 1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return sgn*y;
+}
+const normPdf = (x,m,s) => Math.exp(-0.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));
+const normCdf = (x,m,s) => 0.5*(1+erf(((x-m)/s)/Math.SQRT2));
+function randN(){ let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function lgamma(z){
+  const g=7, c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(z<0.5) return Math.log(Math.PI/Math.sin(Math.PI*z))-lgamma(1-z);
+  z -= 1; let x=c[0]; for(let i=1;i<g+2;i++) x += c[i]/(z+i);
+  const t=z+g+0.5; return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);
+}
+function lcg(seed){ let s=seed>>>0; return ()=>{ s=(Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; }; }
+function mean(a){ return sum(a)/a.length; }
+function sd(a){ const m=mean(a); return Math.sqrt(sum(a.map(v=>(v-m)*(v-m)))/(a.length-1)); }
+
+/* ==================== GRÁFICOS GENÉRICOS ==================== */
+const W = 760;
+
+/* Histograma a partir de clases ya contadas */
+function histBins(host, bins, opt){
+  opt = opt||{};
+  const box = chartShell(host, opt.title, opt.sub);
+  const w = opt.w||W, h = opt.h||330, m = {t:22, r:18, b:opt.xlab?58:44, l:opt.ml||48};
+  const s = mkSvg(box, w, h);
+  const iw = w-m.l-m.r, ih = h-m.t-m.b;
+  const xmin = opt.xmin!=null?opt.xmin:bins[0].lo, xmax = opt.xmax!=null?opt.xmax:bins[bins.length-1].hi;
+  const x = v => m.l+(v-xmin)/(xmax-xmin)*iw;
+  const maxF = Math.max(...bins.map(b=>b.f), 1);
+  const ticks = niceTicks(maxF, 4), top = ticks[ticks.length-1];
+  const y = v => m.t+ih-(v/top)*ih;
+  const xf = opt.xfmt||(v=>fmt(v));
+  ticks.forEach(t=>{
+    s.appendChild(el("line",{x1:m.l,x2:m.l+iw,y1:y(t),y2:y(t),class:"grid-l"}));
+    s.appendChild(el("text",{x:m.l-8,y:y(t)+4,class:"tick","text-anchor":"end"}, fmt(t)));
+  });
+  s.appendChild(el("line",{x1:m.l,x2:m.l+iw,y1:m.t+ih,y2:m.t+ih,class:"axis"}));
+  const total = sum(bins.map(b=>b.f));
+  const col = opt.color||cssv('--s1');
+  bins.forEach(b=>{
+    const x0 = x(b.lo)+0.6, x1 = x(b.hi)-0.6;
+    if(x1<=x0 || b.f<=0) return;
+    const r = el("rect",{x:x0, y:y(b.f), width:x1-x0, height:m.t+ih-y(b.f), fill:col});
+    hoverable(r, `<b>${xf(b.lo)} – ${xf(b.hi)}</b><span class="v">${fmt(b.f)} de ${fmt(total)} · ${fmt(b.f/total*100,1)} %</span>`);
+    s.appendChild(r);
+    if(opt.labels) s.appendChild(el("text",{x:(x0+x1)/2, y:y(b.f)-5, class:"dlab","text-anchor":"middle"}, fmt(b.f)));
+  });
+  const xt = opt.xticks || bins.map(b=>b.lo).concat([bins[bins.length-1].hi]);
+  xt.forEach(v=>{
+    s.appendChild(el("line",{x1:x(v),x2:x(v),y1:m.t+ih,y2:m.t+ih+5,class:"axis"}));
+    const t = el("text",{x:x(v), y:m.t+ih+19, class:"tick","text-anchor":opt.rot?"end":"middle"}, xf(v));
+    if(opt.rot) t.setAttribute("transform",`rotate(-32 ${x(v)} ${m.t+ih+19})`);
+    s.appendChild(t);
+  });
+  if(opt.curve){
+    let d = "";
+    for(let i=0;i<=200;i++){
+      const vx = xmin+(xmax-xmin)*i/200;
+      const vy = Math.min(top*1.15, opt.curve(vx));
+      d += (i?" L":"M")+x(vx).toFixed(1)+" "+y(vy).toFixed(1);
+    }
+    s.appendChild(el("path",{d, fill:"none", stroke:opt.curveColor||cssv('--s2'), "stroke-width":2.2, "stroke-linejoin":"round"}));
+  }
+  (opt.vlines||[]).forEach(v=>{
+    s.appendChild(el("line",{x1:x(v.x),x2:x(v.x),y1:m.t,y2:m.t+ih, stroke:v.color||cssv('--ink-2'), "stroke-width":1.4, "stroke-dasharray":"5 4"}));
+    if(v.label) s.appendChild(el("text",{x:x(v.x), y:m.t-7, class:"flab", fill:v.color||cssv('--ink-2'), "text-anchor":"middle"}, v.label));
+  });
+  if(opt.xlab) s.appendChild(el("text",{x:m.l+iw/2, y:h-6, class:"axlab","text-anchor":"middle"}, opt.xlab));
+  if(opt.ylab) s.appendChild(el("text",{x:13, y:m.t+ih/2, class:"axlab","text-anchor":"middle", transform:`rotate(-90 13 ${m.t+ih/2})`}, opt.ylab));
+  return s;
+}
+
+/* Curvas de densidad, con sombreado y marcas */
+function curveChart(host, curves, opt){
+  opt = opt||{};
+  const box = chartShell(host, opt.title, opt.sub);
+  const w = opt.w||W, h = opt.h||300, m = {t:26, r:20, b:opt.xlab?56:42, l:20};
+  const s = mkSvg(box, w, h);
+  const iw = w-m.l-m.r, ih = h-m.t-m.b;
+  const xmin = opt.xmin, xmax = opt.xmax;
+  const x = v => m.l+(v-xmin)/(xmax-xmin)*iw;
+  const N = 260;
+  let ymax = opt.ymax||0;
+  if(!opt.ymax) curves.forEach(c=>{ for(let i=0;i<=N;i++){ const vx=xmin+(xmax-xmin)*i/N; ymax=Math.max(ymax,c.fn(vx)); } });
+  const y = v => m.t+ih-(v/ymax)*ih*0.9;
+  const base = m.t+ih;
+  const pathOf = (fn, a, b, close) => {
+    let d = "";
+    for(let i=0;i<=N;i++){
+      const vx = a+(b-a)*i/N;
+      d += (i?" L":"M")+x(vx).toFixed(1)+" "+y(fn(vx)).toFixed(1);
+    }
+    if(close) d = `M${x(a).toFixed(1)} ${base} L`+d.slice(1)+` L${x(b).toFixed(1)} ${base} Z`;
+    return d;
+  };
+  (opt.shade||[]).forEach(sh=>{
+    const c = curves[sh.curve||0];
+    const p = el("path",{d:pathOf(c.fn, sh.from, sh.to, true), fill:sh.color||c.color, opacity:sh.opacity!=null?sh.opacity:.28});
+    if(sh.tip) hoverable(p, sh.tip);
+    s.appendChild(p);
+  });
+  curves.forEach(c=>{
+    if(c.fill) s.appendChild(el("path",{d:pathOf(c.fn, xmin, xmax, true), fill:c.color, opacity:.12}));
+    s.appendChild(el("path",{d:pathOf(c.fn, xmin, xmax, false), fill:"none", stroke:c.color, "stroke-width":c.width||2.4, "stroke-dasharray":c.dash||"none", "stroke-linejoin":"round"}));
+    if(c.label){
+      const lx = c.labelX!=null?c.labelX:xmin+(xmax-xmin)*0.5;
+      s.appendChild(el("text",{x:x(lx), y:y(c.fn(lx))-8, class:"flab", fill:c.color, "text-anchor":c.anchor||"middle"}, c.label));
+    }
+  });
+  s.appendChild(el("line",{x1:m.l,x2:m.l+iw,y1:base,y2:base,class:"axis"}));
+  const xf = opt.xfmt||(v=>fmt(v));
+  (opt.xticks||[]).forEach(v=>{
+    s.appendChild(el("line",{x1:x(v),x2:x(v),y1:base,y2:base+5,class:"axis"}));
+    s.appendChild(el("text",{x:x(v), y:base+19, class:"tick","text-anchor":"middle"}, xf(v)));
+  });
+  (opt.vlines||[]).forEach(v=>{
+    const top = v.curve!=null ? y(curves[v.curve].fn(v.x)) : m.t+6;
+    s.appendChild(el("line",{x1:x(v.x),x2:x(v.x),y1:top,y2:base, stroke:v.color||cssv('--ink-2'), "stroke-width":1.4, "stroke-dasharray":v.dash||"5 4"}));
+    if(v.label){
+      const t = el("text",{x:x(v.x), y:(v.below?base+36:top-10), class:"flab", fill:v.color||cssv('--ink'), "text-anchor":v.anchor||"middle"}, v.label);
+      s.appendChild(t);
+    }
+  });
+  (opt.annots||[]).forEach(a=>{
+    const t = el("text",{x:x(a.x), y:m.t+ih*(1-a.y), class:a.cls||"dlab", "text-anchor":a.anchor||"middle", fill:a.color||cssv('--ink')}, a.text);
+    if(a.size) t.style.fontSize = a.size+"px";
+    s.appendChild(t);
+  });
+  if(opt.xlab) s.appendChild(el("text",{x:m.l+iw/2, y:h-6, class:"axlab","text-anchor":"middle"}, opt.xlab));
+  return s;
+}
+
+/* ==================== BLOQUE 1 ==================== */
+function combCalc(){
+  const N = Math.max(1, Math.floor(+$("#cN").value||0)), n = Math.max(0, Math.floor(+$("#cn").value||0));
+  const res = $("#cRes"), lbl = $("#cLbl"), pr = $("#cProb");
+  if(n>N){ res.textContent="—"; lbl.textContent="La muestra no puede ser mayor que la población."; pr.textContent=""; return; }
+  const lg = lgamma(N+1)-lgamma(n+1)-lgamma(N-n+1);
+  const l10 = lg/Math.LN10;
+  if(l10 < 15){
+    let c = 1; for(let i=1;i<=n;i++) c = c*(N-n+i)/i;
+    c = Math.round(c);
+    res.textContent = fmt(c);
+    lbl.textContent = `muestras posibles de ${fmt(n)} elementos tomadas de ${fmt(N)}`;
+    pr.textContent = `Cada muestra tiene probabilidad 1/${fmt(c)}` + (c<=1e6 ? ` = ${(1/c).toLocaleString('es-MX',{maximumSignificantDigits:3})}` : "") + `. Cada elemento tiene probabilidad n/N = ${fmt(n)}/${fmt(N)} = ${(n/N).toFixed(3)} de ser incluido.`;
+  } else {
+    const ex = Math.floor(l10), man = Math.pow(10, l10-ex);
+    res.innerHTML = `${man.toFixed(2)} × 10<sup>${ex}</sup>`;
+    lbl.textContent = `muestras posibles de ${fmt(n)} elementos tomadas de ${fmt(N)}`;
+    pr.innerHTML = `Cada muestra tiene probabilidad 1 entre ${man.toFixed(2)} × 10<sup>${ex}</sup>. Cada elemento tiene probabilidad n/N = ${fmt(n)}/${fmt(N)} = ${(n/N).toFixed(3)} de ser incluido.`;
+  }
+}
+
+const ELEM = ["A","B","C","D","E"];
+const PAIRS = []; for(let i=0;i<5;i++) for(let j=i+1;j<5;j++) PAIRS.push([ELEM[i],ELEM[j]]);
+const DIGITS = [8,0,5,7,5,3,2];
+let stepIdx = 0, picked = [];
+function renderSamples(){
+  const c = $("#samples-ab"); c.innerHTML = "";
+  PAIRS.forEach(p=>{
+    const d = document.createElement("div"); d.className = "sm"; d.dataset.pair = p.join("");
+    d.innerHTML = `${p[0]}, ${p[1]}<small>1/10</small>`;
+    c.appendChild(d);
+  });
+  const dg = $("#digits-ab"); dg.innerHTML = "";
+  DIGITS.forEach(d=>{ const s=document.createElement("div"); s.className="dg"; s.textContent=d; dg.appendChild(s); });
+}
+function resetStep(){
+  stepIdx = 0; picked = [];
+  $$("#digits-ab .dg").forEach(d=>d.className="dg");
+  $$("#samples-ab .sm").forEach(d=>d.classList.remove("hit"));
+  $("#slot1").textContent=""; $("#slot2").textContent="";
+  $("#slot1").classList.remove("full"); $("#slot2").classList.remove("full");
+  $("#step-log").innerHTML = "Pulsa <strong>Siguiente dígito</strong> para ir leyendo.";
+  $("#btn-step").disabled = false; $("#btn-step").classList.add("on");
+  if($$("#digits-ab .dg")[0]) $$("#digits-ab .dg")[0].classList.add("cur");
+}
+function doStep(){
+  const cells = $$("#digits-ab .dg");
+  if(stepIdx>=DIGITS.length || picked.length>=2) return;
+  const d = DIGITS[stepIdx], cell = cells[stepIdx];
+  cells.forEach(c=>c.classList.remove("cur"));
+  let msg;
+  if(d<1 || d>5){ cell.classList.add("no"); msg = `<b>${d}</b> no corresponde a ningún elemento (sólo valen 1 a 5): <b>se descarta</b>.`; }
+  else {
+    const letra = ELEM[d-1];
+    if(picked.includes(letra)){ cell.classList.add("no"); msg = `<b>${d}</b> → ${letra}, pero ${letra} ya está en la muestra: <b>se descarta</b> (muestreo sin reemplazo).`; }
+    else {
+      cell.classList.add("ok"); picked.push(letra);
+      const slot = $("#slot"+picked.length); slot.textContent = letra; slot.classList.add("full");
+      msg = `<b>${d}</b> → <b>${letra}</b> entra a la muestra.`;
+    }
+  }
+  stepIdx++;
+  if(picked.length===2){
+    const key = picked.slice().sort().join("");
+    $$("#samples-ab .sm").forEach(s=>s.classList.toggle("hit", s.dataset.pair===key));
+    for(let i=stepIdx;i<cells.length;i++) cells[i].classList.add("done");
+    msg += ` La muestra ya tiene <b>n = 2</b>: {${picked.join(", ")}}. Los dígitos restantes no se leen.`;
+    $("#btn-step").disabled = true; $("#btn-step").classList.remove("on");
+  } else if(stepIdx<cells.length) cells[stepIdx].classList.add("cur");
+  $("#step-log").innerHTML = msg;
+}
+
+/* ==================== BLOQUE 2 ==================== */
+function drawRepeat(){
+  const host = $("#ch-repeat"); host.innerHTML = "";
+  const w=760, h=300, s = mkSvg(host, w, h);
+  const ink = cssv('--ink'), ink2 = cssv('--ink-2'), ink3 = cssv('--ink-3'), line = cssv('--line-strong');
+  const cols = [cssv('--s1'), cssv('--s2'), cssv('--s4')];
+  // población
+  s.appendChild(el("rect",{x:14,y:24,width:300,height:250,rx:12, fill:cssv('--surface-1'), stroke:line}));
+  s.appendChild(el("text",{x:164,y:46,class:"axlab","text-anchor":"middle"}, "Población: todas las cajas empacadas"));
+  s.appendChild(el("text",{x:164,y:262,class:"tick","text-anchor":"middle"}, "μ = 10.00 kg (desconocida en la práctica)"));
+  const rnd = lcg(11);
+  const owner = {};
+  [0,1,2].forEach(k=>{ let c=0; while(c<7){ const i=Math.floor(rnd()*98); if(owner[i]==null){ owner[i]=k; c++; } } });
+  for(let i=0;i<98;i++){
+    const cx = 34+(i%14)*20, cy = 66+Math.floor(i/14)*26;
+    const k = owner[i];
+    s.appendChild(el("rect",{x:cx,y:cy,width:14,height:14,rx:3, fill:k==null?cssv('--seq-200'):cols[k], stroke:k==null?"none":cssv('--surface-0'), "stroke-width":1.5}));
+  }
+  // muestras
+  const vals = ["9.87","10.14","9.96"];
+  [0,1,2].forEach(k=>{
+    const y0 = 30+k*88;
+    s.appendChild(el("path",{d:`M 316 ${150} C 360 ${150}, 370 ${y0+34}, 420 ${y0+34}`, fill:"none", stroke:cols[k], "stroke-width":2}));
+    s.appendChild(el("polygon",{points:`420,${y0+34} 411,${y0+29} 411,${y0+39}`, fill:cols[k]}));
+    s.appendChild(el("rect",{x:424,y:y0,width:322,height:68,rx:9, fill:cssv('--surface-1'), stroke:line}));
+    s.appendChild(el("rect",{x:424,y:y0,width:5,height:68,rx:2, fill:cols[k]}));
+    s.appendChild(el("text",{x:444,y:y0+26,class:"axlab"}, `Día ${k+1} · muestra ${k+1}: 50 cajas`));
+    const tt = el("text",{x:444,y:y0+52,class:"flab", fill:ink}); tt.style.fontSize="17px";
+    tt.appendChild(el("tspan",{}, "x̄")); const sb = el("tspan",{dy:"4"}, String(k+1)); sb.style.fontSize="11px"; tt.appendChild(sb);
+    const rest = el("tspan",{dy:"-4"}, ` = ${vals[k]} kg`); tt.appendChild(rest); s.appendChild(tt);
+  });
+  s.appendChild(el("text",{x:585,y:294,class:"tick","text-anchor":"middle", fill:ink3}, "Tres muestras, tres promedios distintos: eso es el error muestral"));
+}
+
+const T500 = [
+  {lo:49500,hi:49999,f:2},{lo:50000,hi:50499,f:16},{lo:50500,hi:50999,f:52},{lo:51000,hi:51499,f:101},
+  {lo:51500,hi:51999,f:133},{lo:52000,hi:52499,f:110},{lo:52500,hi:52999,f:54},{lo:53000,hi:53499,f:26},{lo:53500,hi:53999,f:6}
+];
+function renderTable500(){
+  const t = $("#tbl-500");
+  let html = `<thead><tr><th>Media muestral (x̄)</th><th>Frecuencia</th><th>Frecuencia relativa</th></tr></thead><tbody>`;
+  T500.forEach(r=>{ html += `<tr><td>${money(r.lo)} – ${money(r.hi)}</td><td>${r.f}</td><td>${(r.f/500).toFixed(3)}</td></tr>`; });
+  html += `</tbody><tfoot><tr><td>Total</td><td>500</td><td>1.000</td></tr></tfoot>`;
+  t.innerHTML = html;
+}
+function draw500(){
+  histBins($("#ch-500"), T500.map(b=>({lo:b.lo, hi:b.hi+1, f:b.f})), {
+    title:"Distribución de las 500 medias muestrales", sub:"n = 30 gerentes por muestra · clases de $500",
+    h:300, labels:true, xfmt:v=>fmt(v), xlab:"Valor de x̄ (dólares)", ylab:"Frecuencia",
+    vlines:[{x:51800, label:"μ = 51 800"}]
+  });
+}
+
+const MU = 51800, SIG = 4000;
+let simMeans = [];
+function runSim(){
+  const n = +$("#simN").value;
+  simMeans = [];
+  for(let k=0;k<500;k++){ let a=0; for(let i=0;i<n;i++) a += MU+SIG*randN(); simMeans.push(a/n); }
+}
+function drawSim(){
+  const n = +$("#simN").value;
+  $("#simNv").textContent = n;
+  const xmin = 46000, xmax = 57600, bw = 200;
+  const bins = [];
+  for(let lo=xmin; lo<xmax; lo+=bw) bins.push({lo, hi:lo+bw, f:0});
+  simMeans.forEach(v=>{ const i=Math.floor((v-xmin)/bw); if(i>=0&&i<bins.length) bins[i].f++; });
+  const se = SIG/Math.sqrt(n);
+  const opt = {
+    title:`500 medias muestrales con n = ${n}`, sub:"población simulada: μ = 51 800, σ = 4 000", h:300,
+    xmin, xmax, xticks:[46000,48000,50000,52000,54000,56000], xfmt:v=>fmt(v), xlab:"Valor de x̄ (dólares)", ylab:"Frecuencia",
+    vlines:[{x:MU, label:"μ"}]
+  };
+  if($("#simCurve").checked) opt.curve = v => normPdf(v, MU, se)*500*bw;
+  histBins($("#ch-sim"), bins, opt);
+  $("#rdMean").textContent = money(mean(simMeans));
+  $("#rdSd").textContent = money(sd(simMeans),1);
+  $("#rdSe").textContent = money(se,1);
+  $("#rdRange").textContent = `${money(Math.min(...simMeans))} – ${money(Math.max(...simMeans))}`;
+}
+
+/* ==================== BLOQUE 3 ==================== */
+function drawCenter(){
+  const se = SIG/Math.sqrt(30);
+  curveChart($("#ch-center"), [{fn:v=>normPdf(v,MU,se), color:cssv('--s1'), fill:true}], {
+    title:"Distribución muestral de x̄ para n = 30", sub:"la campana se centra en la media de la población", h:270,
+    xmin:49200, xmax:54400, xticks:[49500,50500,51500,52500,53500], xlab:"Valor de x̄ (dólares)",
+    vlines:[{x:MU, label:"E(x̄) = μ = 51 800", curve:0}]
+  });
+}
+function drawSE(){
+  const host = $("#ch-se");
+  const box = chartShell(host, "Error estándar de x̄ según el tamaño de muestra", "σ = 4 000 · población infinita");
+  const w=W, h=300, m={t:22,r:20,b:56,l:56}, s = mkSvg(box, w, h);
+  const iw=w-m.l-m.r, ih=h-m.t-m.b;
+  const nmin=5, nmax=200, ymax=2000;
+  const x = n => m.l+(n-nmin)/(nmax-nmin)*iw, y = v => m.t+ih-(v/ymax)*ih;
+  [0,500,1000,1500,2000].forEach(t=>{
+    s.appendChild(el("line",{x1:m.l,x2:m.l+iw,y1:y(t),y2:y(t),class:"grid-l"}));
+    s.appendChild(el("text",{x:m.l-8,y:y(t)+4,class:"tick","text-anchor":"end"}, fmt(t)));
+  });
+  s.appendChild(el("line",{x1:m.l,x2:m.l+iw,y1:m.t+ih,y2:m.t+ih,class:"axis"}));
+  [5,25,50,75,100,125,150,175,200].forEach(n=>{
+    s.appendChild(el("line",{x1:x(n),x2:x(n),y1:m.t+ih,y2:m.t+ih+5,class:"axis"}));
+    s.appendChild(el("text",{x:x(n),y:m.t+ih+19,class:"tick","text-anchor":"middle"}, n));
+  });
+  let d="";
+  for(let n=nmin;n<=nmax;n+=1) d += (n===nmin?"M":" L")+x(n).toFixed(1)+" "+y(SIG/Math.sqrt(n)).toFixed(1);
+  s.appendChild(el("path",{d, fill:"none", stroke:cssv('--s1'), "stroke-width":2.6}));
+  [5,10,20,30,50,75,100,150,200].forEach(n=>{
+    const v = SIG/Math.sqrt(n), key = (n===30||n===100);
+    const c = el("circle",{cx:x(n), cy:y(v), r:key?7:5, fill:key?cssv('--brand'):cssv('--surface-0'), stroke:key?cssv('--brand'):cssv('--s1'), "stroke-width":2});
+    hoverable(c, `<b>n = ${n}</b><span class="v">σ/√n = ${money(v,1)}</span>`);
+    s.appendChild(c);
+    if(key) s.appendChild(el("text",{x:x(n)+11, y:y(v)-9, class:"dlab"}, `n = ${n}: ${money(v,1)}`));
+  });
+  s.appendChild(el("text",{x:m.l+iw/2, y:h-6, class:"axlab","text-anchor":"middle"}, "Tamaño de la muestra n"));
+  s.appendChild(el("text",{x:13, y:m.t+ih/2, class:"axlab","text-anchor":"middle", transform:`rotate(-90 13 ${m.t+ih/2})`}, "σ de x̄ (dólares)"));
+}
+
+const POPS = {
+  uni:  {name:"Uniforme", pdf:v=>(v>=0&&v<=1)?1:0, draw:()=>Math.random(), xmax:1, xticks:[0,0.25,0.5,0.75,1]},
+  ears: {name:"Orejas de conejo", pdf:v=>(v>=0&&v<=1)?4*Math.abs(v-0.5):0, draw:()=>{ const u=Math.random(); return Math.random()<0.5 ? 0.5-0.5*Math.sqrt(u) : 0.5+0.5*Math.sqrt(u); }, xmax:1, xticks:[0,0.25,0.5,0.75,1]},
+  skew: {name:"Sesgada (exponencial)", pdf:v=>v>=0?4*Math.exp(-4*v):0, draw:()=>-Math.log(1-Math.random())/4, xmax:1.25, xticks:[0,0.25,0.5,0.75,1,1.25]},
+};
+let cltPop = "uni", cltN = 2;
+function drawCLT(){
+  const P = POPS[cltPop];
+  curveChart($("#ch-clt-pop"), [{fn:P.pdf, color:cssv('--s2'), fill:true, width:2.6}], {
+    title:"Población: "+P.name, sub:"distribución de la variable x", h:250, w:560,
+    xmin:0, xmax:P.xmax, xticks:P.xticks, xfmt:v=>String(v), xlab:"Valor de x"
+  });
+  const nb = 40, bw = P.xmax/nb, bins=[];
+  for(let i=0;i<nb;i++) bins.push({lo:i*bw, hi:(i+1)*bw, f:0});
+  for(let k=0;k<3000;k++){ let a=0; for(let i=0;i<cltN;i++) a+=P.draw(); const v=a/cltN; const i=Math.floor(v/bw); if(i>=0&&i<nb) bins[i].f++; }
+  histBins($("#ch-clt-sam"), bins, {
+    title:`Distribución muestral de x̄ con n = ${cltN}`, sub:"3 000 muestras simuladas", h:250, w:560,
+    xmin:0, xmax:P.xmax, xticks:P.xticks, xfmt:v=>String(v), xlab:"Valor de x̄", ml:44
+  });
+}
+
+let probN = 30;
+function drawProb(){
+  const n = probN, se = SIG/Math.sqrt(n);
+  const z = 500/se, zr = Math.round(z*100)/100;
+  const pHi = normCdf(zr,0,1), pLo = normCdf(-zr,0,1);
+  const area = pHi-pLo;
+  curveChart($("#ch-prob"), [{fn:v=>normPdf(v,MU,se), color:cssv('--s1'), fill:true}], {
+    title:`Distribución muestral de x̄ con n = ${n}`, sub:`error estándar σ/√n = ${money(se,1)}`, h:290,
+    xmin:49200, xmax:54400, xticks:[49500,50500,51500,52500,53500], xlab:"Valor de x̄ (dólares)",
+    shade:[{from:51300, to:52300, color:cssv('--brand'), opacity:.32, tip:`<b>Área sombreada</b><span class="v">P(51 300 ≤ x̄ ≤ 52 300) ≈ ${area.toFixed(4)}</span>`}],
+    vlines:[{x:51300, label:"51 300", curve:0, anchor:"end"},{x:52300, label:"52 300", curve:0, anchor:"start"},{x:MU, label:"μ", curve:0, dash:"2 3"}],
+    annots:[{x:MU, y:0.28, text:`P ≈ ${area.toFixed(3)}`, size:18, color:cssv('--brand')}]
+  });
+  const steps = n===30 ? [
+    `σ<sub>x̄</sub> = 4 000 / √30 = <strong>730.3</strong>`,
+    `z para 52 300: (52 300 − 51 800) / 730.3 = <strong>0.68</strong> → P(z ≤ 0.68) = 0.7517`,
+    `z para 51 300: (51 300 − 51 800) / 730.3 = <strong>−0.68</strong> → P(z ≤ −0.68) = 0.2483`,
+    `P(51 300 ≤ x̄ ≤ 52 300) = 0.7517 − 0.2483 = <strong>0.5034</strong>`
+  ] : [
+    `σ<sub>x̄</sub> = 4 000 / √100 = <strong>400</strong>`,
+    `z para 52 300: (52 300 − 51 800) / 400 = <strong>1.25</strong> → P(z ≤ 1.25) = 0.8944`,
+    `z para 51 300: (51 300 − 51 800) / 400 = <strong>−1.25</strong> → P(z ≤ −1.25) = 0.1056`,
+    `P(51 300 ≤ x̄ ≤ 52 300) = 0.8944 − 0.1056 = <strong>0.7888</strong>`
+  ];
+  $("#prob-steps").innerHTML = `<h3>Los pasos con la tabla normal</h3><ol class="mb0">${steps.map(t=>`<li>${t}</li>`).join("")}</ol>`;
+  $("#prob-read").innerHTML = n===30
+    ? `Con una muestra de 30 gerentes, sólo <strong>la mitad</strong> de las muestras posibles produce una media a $500 o menos de la verdadera. La otra mitad yerra por más. Ese es el precio de medir 30 y no 2 500. Cambia a <span class="mx">n</span> = 100 para ver qué compra una muestra más grande.`
+    : `Con 100 gerentes, <strong>79 %</strong> de las muestras posibles queda a $500 o menos de <span class="mx">μ</span>. La franja es la misma; lo que cambió es la campana, que se estrechó porque el error estándar bajó de $730 a $400.`;
+}
+function drawTwo(){
+  curveChart($("#ch-two"), [
+    {fn:v=>normPdf(v,MU,400), color:cssv('--s1'), fill:true, label:"n = 100", labelX:MU, anchor:"middle"},
+    {fn:v=>normPdf(v,MU,730.3), color:cssv('--s2'), fill:true, label:"n = 30", labelX:52750, anchor:"start"}
+  ], {
+    title:"Dos distribuciones muestrales de x̄ con el mismo centro", sub:"misma población, distinto tamaño de muestra", h:310,
+    xmin:49200, xmax:54400, xticks:[49500,50500,51500,52500,53500], xlab:"Valor de x̄ (dólares)",
+    shade:[{from:51300,to:52300,curve:0,color:cssv('--s1'),opacity:.25,tip:`<b>n = 100</b><span class="v">P(51 300 ≤ x̄ ≤ 52 300) = 0.7888</span>`},{from:51300,to:52300,curve:1,color:cssv('--s2'),opacity:.25,tip:`<b>n = 30</b><span class="v">P(51 300 ≤ x̄ ≤ 52 300) = 0.5034</span>`}],
+    vlines:[{x:51300,label:"51 300",anchor:"end"},{x:52300,label:"52 300",anchor:"start"}]
+  });
+}
+function drawPProb(){
+  const se = Math.sqrt(0.6*0.4/30);
+  const area = normCdf(0.56,0,1)-normCdf(-0.56,0,1);
+  curveChart($("#ch-pprob"), [{fn:v=>normPdf(v,0.6,se), color:cssv('--s3'), fill:true}], {
+    title:"Distribución muestral de p̄ con n = 30", sub:"p = 0.60 · error estándar 0.0894", h:300,
+    xmin:0.28, xmax:0.92, xticks:[0.3,0.4,0.5,0.6,0.7,0.8,0.9], xfmt:v=>v.toFixed(1), xlab:"Valor de p̄",
+    shade:[{from:0.55,to:0.65,color:cssv('--brand'),opacity:.32,tip:`<b>Área sombreada</b><span class="v">P(0.55 ≤ p̄ ≤ 0.65) ≈ ${area.toFixed(4)}</span>`}],
+    vlines:[{x:0.55,label:"0.55",curve:0,anchor:"end"},{x:0.65,label:"0.65",curve:0,anchor:"start"},{x:0.6,label:"p",curve:0,dash:"2 3"}],
+    annots:[{x:0.6,y:0.28,text:`P ≈ ${area.toFixed(3)}`,size:18,color:cssv('--brand')}]
+  });
+}
+
+/* ==================== BLOQUE 4 ==================== */
+function drawUnbiased(){
+  curveChart($("#ch-unbiased"), [
+    {fn:v=>normPdf(v,0,1), color:cssv('--s1'), fill:true, label:"insesgado", labelX:-1.5, anchor:"end"},
+    {fn:v=>normPdf(v,1.1,1), color:cssv('--s2'), dash:"6 4", label:"sesgado", labelX:2.6, anchor:"start"}
+  ], {
+    title:"Dos estimadores del mismo parámetro θ", sub:"distribuciones muestrales", h:300,
+    xmin:-3.6, xmax:4.6, xticks:[], vlines:[{x:0,label:"θ",curve:0},{x:1.1,label:"E(θ̂)",curve:1,color:cssv('--s2')}],
+    annots:[{x:0.55,y:0.06,text:"← sesgo →",size:13,color:cssv('--ink-2')}]
+  });
+}
+function drawEfficient(){
+  curveChart($("#ch-efficient"), [
+    {fn:v=>normPdf(v,0,1), color:cssv('--s1'), fill:true, label:"x̄: error estándar σ/√n", labelX:0},
+    {fn:v=>normPdf(v,0,1.2533), color:cssv('--s4'), dash:"6 4", label:"mediana: ≈ 1.25 σ/√n", labelX:1.9, anchor:"start"}
+  ], {
+    title:"Dos estimadores insesgados de μ en una población normal", sub:"misma muestra, distinta dispersión", h:300,
+    xmin:-4, xmax:4, xticks:[], vlines:[{x:0,label:"μ",curve:0}]
+  });
+}
+function drawConsistent(){
+  const c = [cssv('--seq-200'), cssv('--seq-400'), cssv('--seq-700')];
+  curveChart($("#ch-consistent"), [
+    {fn:v=>normPdf(v,0,1/Math.sqrt(10)), color:c[0], fill:true, width:2},
+    {fn:v=>normPdf(v,0,1/Math.sqrt(30)), color:c[1], fill:true, width:2},
+    {fn:v=>normPdf(v,0,1/Math.sqrt(120)), color:c[2], fill:true, width:2}
+  ], {
+    title:"Distribución muestral de x̄ al crecer n", sub:"σ = 1 · la campana se cierra sobre μ", h:290,
+    xmin:-1.1, xmax:1.1, xticks:[], vlines:[{x:0,label:"μ",curve:2}]
+  });
+}
+
+/* ==================== BLOQUE 5 · DIAGRAMAS ==================== */
+function dot(s, cx, cy, r, fill, ring){
+  const c = el("circle",{cx,cy,r,fill});
+  if(ring){ c.setAttribute("stroke", ring); c.setAttribute("stroke-width", 2.5); }
+  s.appendChild(c); return c;
+}
+function drawStrat(){
+  const host = $("#ch-strat"); host.innerHTML = "";
+  const w=560, h=330, s = mkSvg(host, w, h);
+  const cols = [cssv('--s1'), cssv('--s3'), cssv('--s4')], brand = cssv('--brand'), line = cssv('--line-strong');
+  const strata = [{cols:5, x:16, name:"Estrato 1", take:5},{cols:3, x:236, name:"Estrato 2", take:3},{cols:2, x:392, name:"Estrato 3", take:2}];
+  const rnd = lcg(7); const chosen = [];
+  strata.forEach((st,k)=>{
+    const n = st.cols*6, wd = st.cols*40+10;
+    s.appendChild(el("rect",{x:st.x,y:14,width:wd,height:246,rx:10, fill:"none", stroke:line, "stroke-dasharray":"5 4"}));
+    s.appendChild(el("text",{x:st.x+wd/2,y:34,class:"axlab","text-anchor":"middle"}, `${st.name} · ${n}`));
+    const sel = new Set(); while(sel.size<st.take) sel.add(Math.floor(rnd()*n));
+    for(let i=0;i<n;i++){
+      const cx = st.x+25+(i%st.cols)*40, cy = 62+Math.floor(i/st.cols)*34;
+      const isSel = sel.has(i);
+      const c = dot(s, cx, cy, 9, cols[k], isSel?brand:null);
+      if(isSel){ c.setAttribute("stroke-width",3.5); chosen.push({k, cx, cy}); }
+    }
+    s.appendChild(el("text",{x:st.x+wd/2,y:250,class:"tick","text-anchor":"middle"}, `se toman ${st.take}`));
+    s.appendChild(el("path",{d:`M ${st.x+wd/2} 262 L ${st.x+wd/2} 280`, stroke:brand, "stroke-width":2}));
+    s.appendChild(el("polygon",{points:`${st.x+wd/2},286 ${st.x+wd/2-5},278 ${st.x+wd/2+5},278`, fill:brand}));
+  });
+  s.appendChild(el("rect",{x:16,y:290,width:530,height:34,rx:8, fill:cssv('--brand-soft'), stroke:brand}));
+  s.appendChild(el("text",{x:30,y:312,class:"axlab"}, "Muestra: 10 = 5 + 3 + 2 · proporcional al tamaño de cada estrato (1 de cada 6)"));
+}
+function drawCluster(){
+  const host = $("#ch-cluster"); host.innerHTML = "";
+  const w=560, h=330, s = mkSvg(host, w, h);
+  const cols = [cssv('--s1'), cssv('--s3'), cssv('--s4')], brand = cssv('--brand'), line = cssv('--line-strong'), g = cssv('--ink-3');
+  const rnd = lcg(3), picks = new Set([1,6]);
+  for(let k=0;k<8;k++){
+    const x0 = 16+(k%4)*134, y0 = 14+Math.floor(k/4)*124, sel = picks.has(k);
+    s.appendChild(el("rect",{x:x0,y:y0,width:122,height:112,rx:9, fill:sel?cssv('--brand-soft'):"none", stroke:sel?brand:line, "stroke-width":sel?2.5:1, "stroke-dasharray":sel?"none":"5 4"}));
+    s.appendChild(el("text",{x:x0+61,y:y0+18,class:"tick","text-anchor":"middle"}, `Conglomerado ${k+1}`));
+    for(let i=0;i<12;i++){
+      const cx = x0+24+(i%4)*25, cy = y0+40+Math.floor(i/4)*26;
+      const col = cols[Math.floor(rnd()*3)];
+      dot(s, cx, cy, 8, sel?col:g, sel?brand:null);
+    }
+  }
+  s.appendChild(el("rect",{x:16,y:270,width:530,height:44,rx:8, fill:cssv('--brand-soft'), stroke:brand}));
+  s.appendChild(el("text",{x:30,y:288,class:"axlab"}, "Se sortean 2 de los 8 conglomerados y se observan todos sus elementos: 24 en total."));
+  s.appendChild(el("text",{x:30,y:306,class:"tick"}, "Cada conglomerado mezcla los tres tipos de elementos: es una población en pequeño."));
+}
+let sysStart = 3;
+function drawSys(){
+  const N = +$("#sysN").value, n = +$("#sysn").value;
+  $("#sysNv").textContent = N; $("#sysnv").textContent = n;
+  const k = Math.max(1, Math.floor(N/n));
+  if(sysStart>k) sysStart = 1+Math.floor(Math.random()*k);
+  const host = $("#ch-sys"); host.innerHTML = "";
+  const perRow = 20, rows = Math.ceil(N/perRow);
+  const w=760, h=rows*58+16, s = mkSvg(host, w, h);
+  const brand = cssv('--brand'), g = cssv('--surface-2'), line = cssv('--line-strong');
+  const sel = []; for(let v=sysStart; v<=N && sel.length<n; v+=k) sel.push(v);
+  for(let i=1;i<=N;i++){
+    const cx = 28+((i-1)%perRow)*37, cy = 26+Math.floor((i-1)/perRow)*58;
+    const isSel = sel.includes(i);
+    const c = el("circle",{cx,cy,r:14, fill:isSel?brand:g, stroke:isSel?brand:line, "stroke-width":1.5});
+    hoverable(c, `<b>Elemento ${i}</b><span class="v">${isSel?"seleccionado":"no seleccionado"}</span>`);
+    s.appendChild(c);
+    s.appendChild(el("text",{x:cx,y:cy+4,class:"dlab","text-anchor":"middle", fill:isSel?"#fff":cssv('--ink-2'), "font-size":11}, i));
+    if(i<=k) s.appendChild(el("line",{x1:cx-14,x2:cx+14,y1:cy+22,y2:cy+22, stroke:cssv('--gold'), "stroke-width":3}));
+  }
+  $("#sysRead").innerHTML = `k = ⌊N / n⌋ = ⌊${N} / ${n}⌋ = <strong>${k}</strong> · inicio aleatorio entre 1 y ${k} (marcados en dorado): salió <strong>${sysStart}</strong> · muestra: ${sel.join(", ")}${sel.length<n?" (la lista se agotó antes de completar n)":""}`;
+}
+function scatterPop(seed, n, w, h){
+  const rnd = lcg(seed), pts=[];
+  for(let i=0;i<n;i++) pts.push({x:40+rnd()*(w-80), y:30+rnd()*(h-70)});
+  return pts;
+}
+function person(s, x, y, col){
+  s.appendChild(el("circle",{cx:x,cy:y-14,r:8, fill:col}));
+  s.appendChild(el("rect",{x:x-9,y:y-4,width:18,height:22,rx:6, fill:col}));
+}
+function drawConv(){
+  const host = $("#ch-conv"); host.innerHTML = "";
+  const w=560, h=230, s = mkSvg(host, w, h);
+  const brand = cssv('--brand'), g = cssv('--ink-3');
+  const pts = scatterPop(21, 46, w, h);
+  const px = 46, py = h-40;
+  const near = pts.map((p,i)=>({i, d:Math.hypot(p.x-px, p.y-py)})).sort((a,b)=>a.d-b.d).slice(0,8).map(o=>o.i);
+  s.style.overflow="hidden";
+  s.appendChild(el("circle",{cx:px,cy:py-10,r:96, fill:cssv('--brand-soft'), opacity:.7}));
+  pts.forEach((p,i)=>{ const sel = near.includes(i); dot(s, p.x, p.y, 7, sel?brand:g, sel?cssv('--surface-0'):null); });
+  person(s, px, py, cssv('--ink'));
+  s.appendChild(el("text",{x:px+22,y:py+14,class:"tick"}, "investigador"));
+  s.appendChild(el("text",{x:w/2,y:h-6,class:"axlab","text-anchor":"middle"}, "Conveniencia: entran los que están al alcance"));
+}
+function drawJudg(){
+  const host = $("#ch-judg"); host.innerHTML = "";
+  const w=560, h=230, s = mkSvg(host, w, h);
+  const brand = cssv('--brand'), g = cssv('--ink-3');
+  const pts = scatterPop(33, 46, w, h);
+  const px = 46, py = h-40;
+  const sel = [3, 11, 19, 27, 38, 44];
+  sel.forEach(i=>{ const p=pts[i]; s.appendChild(el("line",{x1:px+8,y1:py-6,x2:p.x,y2:p.y, stroke:brand, "stroke-width":1.3, "stroke-dasharray":"4 4", opacity:.8})); });
+  pts.forEach((p,i)=>{ const isSel = sel.includes(i); dot(s, p.x, p.y, 7, isSel?brand:g, isSel?cssv('--surface-0'):null); });
+  person(s, px, py, cssv('--ink'));
+  s.appendChild(el("text",{x:px+22,y:py+14,class:"tick"}, "experto"));
+  s.appendChild(el("text",{x:w/2,y:h-6,class:"axlab","text-anchor":"middle"}, "Subjetivo: entran los que alguien considera representativos"));
+}
+
+/* ==================== BLOQUE 6 ==================== */
+function sampleSize(){
+  const N = Math.max(1, Math.floor(+$("#ssN").value||1)), z = +$("#ssZ").value, e = +$("#ssE").value;
+  const n0 = z*z*0.25/(e*e);
+  const n = Math.ceil(n0/(1+n0/N));
+  $("#ssRes").textContent = fmt(Math.min(n, N));
+  const conf = $("#ssZ").selectedOptions[0].textContent, me = $("#ssE").selectedOptions[0].textContent;
+  $("#ssLbl").innerHTML = `casos para N = ${fmt(N)}, confianza ${conf}, margen ±${me} <br><span class="hint">n<sub>0</sub> = ${fmt(n0,1)} para población infinita</span>`;
+}
+
+/* ==================== RENDER ==================== */
+function renderStatic(){
+  drawRepeat(); renderTable500(); draw500(); drawCenter(); drawSE(); drawTwo(); drawPProb();
+  drawUnbiased(); drawEfficient(); drawConsistent();
+  drawStrat(); drawCluster(); drawConv(); drawJudg();
+}
+function renderState(){
+  drawSim(); drawCLT(); drawProb(); drawSys(); combCalc(); sampleSize();
+}
+
+/* ==================== MOTOR DE DIAPOSITIVAS ==================== */
+const slides = $$(".slide");
+let cur = 0;
+const BLOQUES = [
+  {k:"",  t:"Apertura",                                        a:1,  b:2,  min:5,  d:"Encuadre y mapa de la sesión"},
+  {k:"1", t:"Muestreo aleatorio simple",                       a:3,  b:8,  min:15, d:"Poblaciones finitas e infinitas, selección y estimación puntual"},
+  {k:"2", t:"Introducción a las distribuciones muestrales",    a:9,  b:12, min:15, d:"Qué pasa al repetir la muestra · simulación"},
+  {k:"3", t:"Distribución muestral de x̄ y de p̄",              a:13, b:20, min:25, d:"Centro, dispersión, forma y teorema del límite central"},
+  {k:"4", t:"Propiedades de los estimadores",                  a:21, b:23, min:10, d:"Insesgadez, eficiencia y consistencia"},
+  {k:"5", t:"Otros métodos de muestreo",                       a:24, b:29, min:15, d:"Estratificado, conglomerados, sistemático y no probabilísticos"},
+  {k:"6", t:"Ejercicios en SPSS",                              a:30, b:34, min:30, d:"Escuelas y Hogares con tres esquemas de muestreo"},
+  {k:"",  t:"Referencias, materiales e índice",                a:35, b:37, min:3,  d:"Fuentes, descargas y navegación final"},
+];
+const bloqueDe = n => BLOQUES.find(x=> n>=x.a && n<=x.b) || BLOQUES[0];
+
+function go(i){
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach((s,k)=>s.classList.toggle("active", k===cur));
+  slides[cur].scrollTop = 0;
+  $("#counter").textContent = `${cur+1} / ${slides.length}`;
+  const bq = bloqueDe(cur+1);
+  const sec = slides[cur].dataset.sec || "";
+  const cola = (sec && sec !== bq.t) ? bq.t + " · " + sec : bq.t;
+  $("#secname").innerHTML =
+    (bq.k ? `<span class="bchip">Bloque ${bq.k}</span><span>${cola}</span>`
+          : `<span class="bchip g">${bq.t}</span>${sec && sec!==bq.t ? `<span>${sec}</span>` : ""}`);
+  $("#prog").style.width = ((cur+1)/slides.length*100)+"%";
+  marcarMenu();
+  try{ location.hash = "d"+(cur+1); }catch(e){}
+  tipOff();
+}
+function irABloque(idx){
+  const bq = BLOQUES[idx];
+  if(!bq) return;
+  go(bq.a-1);
+  $("#menu").classList.remove("on");
+}
+function marcarMenu(){
+  const bq = bloqueDe(cur+1);
+  $$("#blocks .blk").forEach((b,i)=>b.classList.toggle("now", BLOQUES[i]===bq));
+  $$("#toc button").forEach((b,i)=>b.classList.toggle("now", i===cur));
+}
+function next(){ go(cur+1); }
+function prev(){ go(cur-1); }
+
+document.addEventListener("keydown", e=>{
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  const menuOpen = $("#menu").classList.contains("on");
+  if(e.key==="Escape"){ $("#menu").classList.remove("on"); return; }
+  if(e.key==="m"||e.key==="M"){ $("#menu").classList.toggle("on"); return; }
+  if(menuOpen) return;
+  if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){ e.preventDefault(); next(); }
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){ e.preventDefault(); prev(); }
+  else if(e.key==="Home"){ go(0); }
+  else if(e.key==="End"){ go(slides.length-1); }
+  else if(e.key>="1" && e.key<="6"){ irABloque(+e.key); }
+  else if(e.key==="0"){ go(0); }
+  else if(e.key==="t"||e.key==="T"){ toggleTheme(); }
+  else if(e.key==="f"||e.key==="F"){
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(()=>{});
+  }
+});
+
+let tx=0, ty=0;
+document.addEventListener("touchstart", e=>{ tx=e.changedTouches[0].clientX; ty=e.changedTouches[0].clientY; }, {passive:true});
+document.addEventListener("touchend", e=>{
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>62 && Math.abs(dx)>Math.abs(dy)*1.6){ dx<0?next():prev(); }
+}, {passive:true});
+
+$("#btn-next").onclick = next;
+$("#btn-prev").onclick = prev;
+$("#btn-menu").onclick = ()=>$("#menu").classList.toggle("on");
+$("#btn-print").onclick = ()=>{ $("#menu").classList.remove("on"); setTimeout(()=>window.print(), 90); };
+
+function tarjetasBloque(cont, conNumero){
+  BLOQUES.forEach((bq,i)=>{
+    const n = bq.b - bq.a + 1;
+    const b = document.createElement("button");
+    b.className = "blk";
+    b.innerHTML =
+      `<span class="bn">${bq.k ? "Bloque "+bq.k : "&nbsp;"}</span>` +
+      `<span class="bt">${bq.t}</span>` +
+      `<span class="bm"><span>${n} lámina${n>1?"s":""}</span><span>·</span><span>~${bq.min} min</span>` +
+      (conNumero && bq.k ? `<span class="kbd">${bq.k}</span>` : "") + `</span>`;
+    b.onclick = ()=>irABloque(i);
+    cont.appendChild(b);
+  });
+}
+(function buildMenu(){
+  tarjetasBloque($("#blocks"), true);
+  const toc = $("#toc");
+  let last = null;
+  slides.forEach((s,i)=>{
+    const bq = bloqueDe(i+1);
+    const etq = (bq.k ? "Bloque "+bq.k+" · " : "") + bq.t;
+    if(etq!==last){
+      const h = document.createElement("div"); h.className="h"; h.textContent = etq;
+      toc.appendChild(h); last = etq;
+    }
+    const h2 = s.querySelector("h1,h2");
+    const b = document.createElement("button");
+    const titulo = h2 ? h2.innerHTML.replace(/<br\s*\/?>/gi," ").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim() : (s.dataset.sec||"");
+    b.innerHTML = `<span class="n">${i+1}</span><span>${titulo}</span>`;
+    b.onclick = ()=>{ go(i); $("#menu").classList.remove("on"); };
+    toc.appendChild(b);
+  });
+  const fin = $("#blocks-fin");
+  if(fin) tarjetasBloque(fin, true);
+})();
+
+function toggleTheme(){
+  const now = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", now);
+  try{ localStorage.setItem("tema", now); }catch(e){}
+  renderStatic(); renderState();
+}
+$("#btn-theme").onclick = toggleTheme;
+(function initTheme(){
+  let t = null;
+  try{ t = localStorage.getItem("tema"); }catch(e){}
+  if(!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+})();
+
+/* ==================== CONTROLES ==================== */
+function bindGroup(sel, fn){
+  const btns = $$(sel);
+  btns.forEach(b=>{
+    b.onclick = ()=>{ btns.forEach(x=>x.classList.remove("on")); b.classList.add("on"); fn(b.dataset); };
+  });
+}
+function bindAll(){
+  $("#cN").oninput = combCalc; $("#cn").oninput = combCalc;
+  bindGroup("[data-comb]", d=>{ const [N,n]=d.comb.split(","); $("#cN").value=N; $("#cn").value=n; combCalc(); });
+  $("#btn-step").onclick = doStep; $("#btn-reset").onclick = resetStep;
+  $("#simN").oninput = ()=>{ runSim(); drawSim(); };
+  $("#simGo").onclick = ()=>{ runSim(); drawSim(); };
+  $("#simCurve").onchange = drawSim;
+  bindGroup("[data-pop]", d=>{ cltPop = d.pop; drawCLT(); });
+  bindGroup("[data-n]", d=>{ cltN = +d.n; drawCLT(); });
+  $("#cltGo").onclick = drawCLT;
+  bindGroup("[data-prob]", d=>{ probN = +d.prob; drawProb(); });
+  $("#sysN").oninput = drawSys; $("#sysn").oninput = drawSys;
+  $("#sysGo").onclick = ()=>{ const N=+$("#sysN").value, n=+$("#sysn").value, k=Math.max(1,Math.floor(N/n)); sysStart = 1+Math.floor(Math.random()*k); drawSys(); };
+  $("#ssN").oninput = sampleSize; $("#ssZ").onchange = sampleSize; $("#ssE").onchange = sampleSize;
+}
+
+/* ==================== ARRANQUE ==================== */
+renderSamples(); resetStep();
+runSim();
+renderStatic(); renderState();
+bindAll();
+const h = (location.hash||"").match(/^#d(\d+)$/);
+go(h ? Math.min(slides.length, Math.max(1, +h[1]))-1 : 0);
+window.addEventListener("beforeprint", ()=>slides.forEach(s=>s.classList.add("active")));
+window.addEventListener("afterprint", ()=>go(cur));
+</script>
+</body>
+</html>
